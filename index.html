@@ -4,235 +4,316 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Learnify - AI Study Assistant</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://js.puter.com/v2/"></script>
+
     <style>
-        :root {
-            --bg-blue: #d0e7ff;
-            --bg-pink: #fce4ec;
-            --main-text: #1a3a5a;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Coming+Soon&family=Handlee&display=swap');
 
         body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #fff;
-            overflow-x: hidden;
+            margin: 0; padding: 0;
+            font-family: 'Handlee', cursive;
+            background: #ffffff;
+            background-image: 
+                radial-gradient(circle at 0% 100%, #d1e3fa 0%, #d1e3fa 25%, transparent 25%),
+                radial-gradient(circle at 100% 100%, #f7d6e0 0%, #f7d6e0 25%, transparent 25%);
+            background-size: 100% 100%;
             min-height: 100vh;
-            position: relative;
+            display: flex; flex-direction: column;
+            overflow-x: hidden;
         }
 
-        /* Decorative Backgrounds */
-        .wave-blue {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 50%;
-            height: 40%;
-            background: var(--bg-blue);
-            border-radius: 0 100% 0 0;
-            z-index: -1;
-        }
+        .main-content { display: flex; flex-direction: column; align-items: center; padding-top: 40px; position: relative; z-index: 1; }
+        .lang-node { position: absolute; top: 20px; right: 40px; }
 
-        .wave-pink {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 60%;
-            height: 50%;
-            background: var(--bg-pink);
-            border-radius: 100% 0 0 0;
-            z-index: -2;
+        .instruction-box {
+            position: absolute; top: 80px; left: 40px; background: #f0c9c9;
+            padding: 15px; border-radius: 30px; width: 220px;
+            box-shadow: 2px 4px 10px rgba(0,0,0,0.1); font-size: 0.85rem; line-height: 1.3;
         }
+        .instruction-box h2 { font-family: 'Coming Soon', cursive; font-size: 1rem; text-align: center; margin-top: 0; }
 
-        /* Header & Language Toggle */
-        header {
-            display: flex;
-            justify-content: flex-end;
-            padding: 20px;
-        }
+        .logo-container { text-align: center; margin-bottom: 20px; }
+        .logo-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
 
-        .lang-btn {
-            background-color: #0077b6;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+        h1 { font-family: 'Coming Soon', cursive; color: #2980b9; font-size: 3rem; margin: 5px 0; }
 
-        /* Main Content */
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 20px;
-            text-align: center;
-        }
-
-        .logo {
-            width: 120px;
-            margin-bottom: 10px;
-        }
-
-        h1 {
-            color: #0077b6;
-            font-size: 3rem;
-            margin: 0;
-            font-style: italic;
-        }
-
-        /* Quick Guide Box */
-        .guide-box {
-            position: absolute;
-            top: 100px;
-            left: 40px;
-            background: #f8d7da;
-            padding: 15px;
-            border-radius: 20px;
-            width: 250px;
-            text-align: left;
-            font-size: 0.9rem;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-        }
-
-        /* Upload Section */
         .upload-area {
-            background: #e0e0e0;
-            padding: 30px 60px;
-            border-radius: 50px;
-            margin-top: 30px;
-            cursor: pointer;
-            width: 400px;
+            background: #e0e0e0; padding: 15px 50px; border-radius: 50px;
+            font-size: 1.5rem; cursor: pointer; margin: 20px 0; border: 2px dashed #3498db;
+            font-family: 'Coming Soon', cursive; transition: 0.2s;
         }
 
-        .upload-area h2 {
-            margin: 0;
-            font-weight: normal;
-        }
+        .disclaimer-bar { background: #fff9c4; padding: 10px 20px; font-size: 0.9rem; margin: 10px 0; border-radius: 5px; max-width: 600px; text-align: center; border: 1px solid #f1c40f; }
 
-        .disclaimer {
-            background: #fff9c4;
-            padding: 5px 20px;
-            margin-top: 20px;
-            font-size: 0.8rem;
-            border-radius: 5px;
-        }
+        .app-container { width: 80%; max-width: 800px; margin-top: 20px; background: rgba(255,255,255,0.8); padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
 
-        /* Controls Section */
-        .controls {
-            margin-top: 30px;
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
+        .btn { padding: 10px 22px; margin: 5px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Handlee'; transition: all 0.3s ease; }
+        #uiLangBtn { background: #1a73e8; color: white; border-radius: 10px; }
+        
+        #output-container { 
+            text-align: left; background: #ffffff; padding: 25px; border-radius: 12px; 
+            border: 1px solid #dee2e6; max-height: 450px; overflow-y: auto; margin-top: 20px;
+            line-height: 1.6; color: #2c3e50; white-space: pre-wrap;
         }
+        .answer-box { background: #f1f8ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db; margin-top: 15px; }
 
-        select, button.action-btn {
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid #ccc;
-        }
+        .footer-credit-bar { width: 100%; padding: 20px 0; text-align: center; margin-top: auto; font-weight: bold; background: rgba(255,255,255,0.9); border-top: 1px solid #ddd; }
 
-        /* Minigame Placeholder */
-        .minigame-space {
-            margin-top: 50px;
-            width: 300px;
-            height: 150px;
-            border: 2px dashed #aaa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #777;
-            border-radius: 15px;
+        #game-section { margin-top: 30px; padding: 20px; background: #fffcf0; border-radius: 15px; border: 1px solid #f1c40f; text-align: center; }
+        .play-game-btn { background: #e67e22; color: white; width: 100%; opacity: 0.4; }
+        .play-game-btn.enabled { opacity: 1; cursor: pointer; }
+
+        @media (max-width: 1000px) {
+            .instruction-box { position: static; width: 90%; margin-bottom: 20px; }
+            .lang-node { top: 10px; right: 10px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="wave-blue"></div>
-    <div class="wave-pink"></div>
+<div class="main-content">
+    <div class="lang-node">
+        <button id="uiLangBtn" onclick="toggleUILanguage()">Bahasa Malaysia</button>
+    </div>
 
-    <header>
-        <button class="lang-btn" id="langToggle" onclick="toggleLanguage()">Bahasa Malaysia</button>
-    </header>
-
-    <aside class="guide-box" id="quickGuide">
-        <strong>Quick Guide:</strong>
-        <ul style="padding-left: 20px;">
-            <li>1. Upload: Select a PDF or photo of notes.</li>
-            <li>2. Question mode: Pick amount (5, 10, 20).</li>
-            <li>3. Student mode: Hidden answers.</li>
-            <li>4. Teacher mode: Answers visible.</li>
-            <li>5. Translate: Rewrite notes into BM.</li>
+    <div class="instruction-box">
+        <h2 id="inst-title">Quick Guide</h2>
+        <ul id="inst-list" style="list-style: none; padding: 0;">
+            <li>• 1. Upload: Select PDF/photo.</li>
+            <li>• 2. Setup: Choose type, amount, & mode.</li>
+            <li>• 3. Student Mode: Hides answers.</li>
+            <li>• 4. Teacher Mode: Shows answers.</li>
+            <li>• 5. Translate: Rewrite to BM.</li>
         </ul>
-    </aside>
+    </div>
 
-    <main class="container">
-        <img src="your-logo-path.png" alt="Learnify Logo" class="logo">
-        <h1 id="siteTitle">Learnify</h1>
+    <div class="logo-container">
+        <img src="logo_learnify.png" alt="Learnify Logo" class="logo-img">
+        <h1 id="main-title">Learnify</h1>
+    </div>
 
-        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-            <h2 id="uploadText">Upload PDF or image</h2>
-            <input type="file" id="fileInput" style="display:none" accept="image/*,.pdf">
-        </div>
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <span id="file-label">Upload PDF or image</span>
+        <input type="file" id="fileInput" accept=".pdf,image/*" style="display:none" onchange="handleFileSelect()">
+    </div>
 
-        <div class="disclaimer" id="disclaimerText">
-            Disclaimer: AI may occasionally provide incorrect information. Please cross-reference with your original source.
-        </div>
+    <div id="disclaimer-text" class="disclaimer-bar">
+        Disclaimer: AI may occasionally provide incorrect information. Please cross-reference with your original source.
+    </div>
 
-        <div class="controls">
-            <select id="questionCount">
-                <option value="5">5 Questions</option>
-                <option value="10">10 Questions</option>
-                <option value="20">20 Questions</option>
-            </select>
+    <div class="app-container">
+        <div id="setup-section" style="display:none; text-align:center;">
+            <div style="margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+                <div>
+                    <label id="lbl-type" style="font-weight:bold; font-size:0.8rem; display:block;">QUESTION TYPE:</label>
+                    <select id="qType" style="padding:8px; border-radius:5px; border:1px solid #ccc;">
+                        <option value="Objective Only (Traditional & Complex Mix)">Objective Only</option>
+                        <option value="Subjective Only (Short Answer)">Subjective Only</option>
+                    </select>
+                </div>
+                <div>
+                    <label id="lbl-count" style="font-weight:bold; font-size:0.8rem; display:block;">AMOUNT:</label>
+                    <select id="qCount" style="padding:8px; border-radius:5px; border:1px solid #ccc;">
+                        <option value="5">5 Questions</option>
+                        <option value="10">10 Questions</option>
+                        <option value="20">20 Questions</option>
+                    </select>
+                </div>
+                <div>
+                    <label id="lbl-mode" style="font-weight:bold; font-size:0.8rem; display:block;">DISPLAY MODE:</label>
+                    <select id="displayMode" style="padding:8px; border-radius:5px; border:1px solid #ccc;">
+                        <option value="student">🎒 Student (Hide Ans)</option>
+                        <option value="teacher">🧑‍🏫 Teacher (Show Ans)</option>
+                    </select>
+                </div>
+            </div>
             
-            <button class="action-btn" onclick="generateQuestions()">Generate Questions</button>
-            <button class="action-btn" onclick="translateDoc()">Translate Document</button>
+            <div style="display: flex; justify-content: center; gap: 5px;">
+                <button id="btn-generate" class="btn" style="background:#3498db; color:white;" onclick="runAI()">✨ Generate Questions</button>
+                <button id="btn-translate" class="btn" style="background:#e74c3c; color:white;" onclick="translateToBM()">🌐 Translate to BM</button>
+                <button id="btn-regen" class="btn" style="background:#f39c12; color:white; display:none;" onclick="handleRegen()">🔄 Regenerate</button>
+            </div>
         </div>
 
-        <!-- Space for results and Minigame -->
-        <div id="resultArea"></div>
+        <div id="output-container">Waiting for document upload...</div>
 
-        <div class="minigame-space">
-            Minigame Space
+        <div id="game-section">
+            <div style="font-weight:bold; color:#d35400; margin-bottom:10px;">🧩 Terminology Scramble | Streak: <span id="streak-count">0</span></div>
+            <button id="start-game-btn" class="btn play-game-btn" onclick="toggleGame()">Start Word Scramble</button>
+            
+            <div id="game-content" style="display:none; margin-top:15px;">
+                <div id="scrambled-display" style="font-size:1.8rem; font-weight:bold; color:#e74c3c; letter-spacing:4px; margin:10px 0;"></div>
+                <div id="hint-text" style="font-size:0.9rem; color:#7f8c8d; font-style:italic; margin-bottom:10px; min-height:1.2rem;"></div>
+                <input type="text" id="game-input" style="padding:10px; width:70%; border-radius:5px; border:1px solid #ccc; margin-bottom:10px;" placeholder="Type answer...">
+                <div>
+                    <button class="btn" style="background:#e67e22; color:white;" onclick="checkScramble()">Submit</button>
+                    <button class="btn" style="background:#9b59b6; color:white; font-size:0.8rem;" onclick="showHint()">Hint</button>
+                    <button class="btn" style="background:#95a5a6; color:white; font-size:0.8rem;" onclick="giveUp()">Give Up</button>
+                </div>
+                <p id="game-feedback" style="font-weight:bold; margin-top:10px; min-height:20px;"></p>
+            </div>
         </div>
-    </main>
+    </div>
+</div>
 
-    <script>
-        let currentLang = 'EN';
+<div class="footer-credit-bar">
+    Neo Dominion (Computer System Operation, Sarawak Skills 2026)
+</div>
 
-        function toggleLanguage() {
-            const btn = document.getElementById('langToggle');
-            const title = document.getElementById('siteTitle');
-            const upload = document.getElementById('uploadText');
-            const guide = document.getElementById('quickGuide');
-            const disclaimer = document.getElementById('disclaimerText');
+<script>
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-            if (currentLang === 'EN') {
-                btn.innerText = "English";
-                upload.innerText = "Muat naik PDF atau imej";
-                disclaimer.innerText = "Penafian: AI mungkin memberikan maklumat yang salah. Sila rujuk sumber asal anda.";
-                // Update Quick Guide content here
-                currentLang = 'BM';
+    let currentUILang = 'en';
+    let lastExtractedText = "";
+    let lastAction = 'generate'; 
+    let winStreak = 0;
+    let currentWord = "";
+    let gameActive = false;
+
+    const uiText = {
+        en: { 
+            title: "Learnify", upload: "Upload PDF or image", initial: "Upload a file to begin...",
+            generate: "✨ Generate Questions", translate: "🌐 Translate to BM",
+            processing: "✨ Analyzing and Formatting...", type: "QUESTION TYPE:", count: "AMOUNT:", mode: "DISPLAY MODE:",
+            disclaimer: "Disclaimer: AI may occasionally provide incorrect information. Please cross-reference with your original source."
+        },
+        ms: { 
+            title: "Learnify", upload: "Muat Naik PDF atau Imej", initial: "Muat naik fail untuk bermula...",
+            generate: "✨ Jana Soalan", translate: "🌐 Terjemah ke BM",
+            processing: "✨ Menganalisis dan Menyusun...", type: "JENIS SOALAN:", count: "JUMLAH:", mode: "MOD PAPARAN:",
+            disclaimer: "Penafian: AI mungkin memberikan maklumat yang salah. Sila rujuk semula sumber asal anda."
+        }
+    };
+
+    function toggleUILanguage() {
+        currentUILang = currentUILang === 'en' ? 'ms' : 'en';
+        const t = uiText[currentUILang];
+        document.getElementById('main-title').innerText = t.title;
+        document.getElementById('file-label').innerText = t.upload;
+        document.getElementById('btn-generate').innerText = t.generate;
+        document.getElementById('btn-translate').innerText = t.translate;
+        document.getElementById('lbl-type').innerText = t.type;
+        document.getElementById('lbl-count').innerText = t.count;
+        document.getElementById('lbl-mode').innerText = t.mode;
+        document.getElementById('disclaimer-text').innerText = t.disclaimer;
+        document.getElementById('uiLangBtn').innerText = currentUILang === 'en' ? "Bahasa Malaysia" : "English";
+    }
+
+    async function handleFileSelect() {
+        const file = document.getElementById('fileInput').files[0];
+        if (!file) return;
+        document.getElementById('file-label').innerText = "📄 " + file.name;
+        document.getElementById('setup-section').style.display = "block";
+        document.getElementById('start-game-btn').classList.add('enabled');
+        const out = document.getElementById('output-container');
+        out.innerHTML = "Reading file...";
+
+        try {
+            if (file.type === "application/pdf") {
+                const pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
+                let text = "";
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    text += (await page.getTextContent()).items.map(item => item.str).join(' ') + " ";
+                }
+                lastExtractedText = text;
             } else {
-                btn.innerText = "Bahasa Malaysia";
-                upload.innerText = "Upload PDF or image";
-                disclaimer.innerText = "Disclaimer: AI may occasionally provide incorrect information. Please cross-reference with your original source.";
-                currentLang = 'EN';
+                lastExtractedText = await puter.ai.img2txt(file);
             }
-        }
+            out.innerHTML = "✅ Ready! Adjust settings and click Generate.";
+        } catch (e) { out.innerHTML = "❌ Error reading file."; }
+    }
 
-        async function generateQuestions() {
-            alert("Connecting to Gemini to generate " + document.getElementById('questionCount').value + " questions...");
-            // Integrate your Gemini API call here
-        }
+    async function runAI() {
+        lastAction = 'generate';
+        const out = document.getElementById('output-container');
+        const qType = document.getElementById('qType').value;
+        const qCount = document.getElementById('qCount').value;
+        const mode = document.getElementById('displayMode').value;
+        out.innerHTML = `<span style="color:#3498db; font-weight:bold;">${uiText[currentUILang].processing}</span>`;
 
-        async function translateDoc() {
-            alert("Translating document via Gemini...");
-            // Integrate your Gemini API call here
+        const prompt = `
+            You are a professional academic examiner. Based on this text: "${lastExtractedText.substring(0, 7500)}"
+            Generate ${qCount} questions. Type: ${qType}.
+            Format: Mix traditional and complex (I,II,III) styles.
+            End with "---ANSWERS-START---" followed by the answer key.
+            Language: ${currentUILang === 'en' ? 'English' : 'Bahasa Malaysia'}.
+        `;
+
+        try {
+            const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+            const parts = res.message.content.split("---ANSWERS-START---");
+            const qContent = parts[0].trim();
+            const aContent = parts[1] ? parts[1].trim() : "Key unavailable.";
+
+            if (mode === 'student') {
+                out.innerHTML = `<h3>📝 Practice Quiz</h3><div>${qContent}</div>
+                                 <details class="answer-box"><summary>Click to reveal answers</summary><div>${aContent}</div></details>`;
+            } else {
+                out.innerHTML = `<h3>🧑‍🏫 Teacher Material</h3><div>${qContent}</div><div class="answer-box"><strong>Answer Key:</strong><br>${aContent}</div>`;
+            }
+            document.getElementById('btn-regen').style.display = "inline-block";
+        } catch (e) { out.innerHTML = "❌ AI Error."; }
+    }
+
+    async function translateToBM() {
+        if (!lastExtractedText) return;
+        lastAction = 'translate';
+        const out = document.getElementById('output-container');
+        out.innerHTML = `<span style="color:#e74c3c; font-weight:bold;">🌐 Translating...</span><br><div id="t-prog" style="font-size:0.8rem; margin-top:5px;"></div>`;
+        
+        const chunkSize = 3000;
+        const chunks = [];
+        for (let i = 0; i < lastExtractedText.length; i += chunkSize) chunks.push(lastExtractedText.substring(i, i + chunkSize));
+
+        let translated = "";
+        try {
+            for (let i = 0; i < chunks.length; i++) {
+                document.getElementById('t-prog').innerText = `Part ${i+1}/${chunks.length}...`;
+                const prompt = `Translate this educational text to formal Bahasa Malaysia. Keep original formatting. Keep technical terms in brackets: "${chunks[i]}"`;
+                const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+                translated += res.message.content + "\n\n";
+            }
+            out.innerHTML = `<h3>🌐 Terjemahan Nota</h3><div>${translated}</div>`;
+            document.getElementById('btn-regen').style.display = "inline-block";
+        } catch (e) { out.innerHTML = "❌ Translation Error."; }
+    }
+
+    function handleRegen() { lastAction === 'translate' ? translateToBM() : runAI(); }
+
+    function toggleGame() {
+        if(!lastExtractedText) { alert("Upload a file first!"); return; }
+        gameActive = !gameActive;
+        document.getElementById('game-content').style.display = gameActive ? "block" : "none";
+        document.getElementById('start-game-btn').innerText = gameActive ? "Stop Game" : "Start Word Scramble";
+        if(gameActive) refreshGame();
+    }
+
+    function refreshGame() {
+        document.getElementById('game-feedback').innerText = "";
+        const words = lastExtractedText.split(/\s+/).filter(w => w.length > 7 && /^[A-Z]+$/i.test(w));
+        currentWord = (words.length > 0 ? words[Math.floor(Math.random()*words.length)] : "DEVELOPMENT").toUpperCase().replace(/[^A-Z]/g, '');
+        document.getElementById('scrambled-display').innerText = currentWord.split('').sort(() => Math.random() - 0.5).join('');
+        document.getElementById('game-input').value = "";
+    }
+
+    function checkScramble() {
+        if (document.getElementById('game-input').value.toUpperCase() === currentWord) {
+            winStreak++; document.getElementById('streak-count').innerText = winStreak;
+            document.getElementById('game-feedback').innerText = "✅ Correct!";
+            setTimeout(refreshGame, 1000);
+        } else {
+            winStreak = 0; document.getElementById('streak-count').innerText = "0";
+            document.getElementById('game-feedback').innerText = "❌ Try again!";
         }
-    </script>
+    }
+
+    function showHint() { document.getElementById('hint-text').innerText = `Starts with "${currentWord[0]}" and ends with "${currentWord[currentWord.length - 1]}"`; }
+    function giveUp() { document.getElementById('game-feedback').innerText = `Answer: ${currentWord}`; setTimeout(refreshGame, 2000); }
+</script>
 </body>
 </html>

@@ -93,7 +93,7 @@
 
     <div class="logo-container">
         <!-- Logo image updated to logo_learnify.png -->
-        <img src="./logo_learnify.png" alt="Learnify Logo" class="logo-img">
+        <img src="logo_learnify.png" alt="Learnify Logo" class="logo-img">
         <h1 id="main-title">Learnify</h1>
     </div>
 
@@ -263,43 +263,52 @@
     }
 
     async function translateToBM() {
-        if (!lastExtractedText) return;
-        lastAction = 'translate';
-        const out = document.getElementById('output-container');
-        
-        // Setup initial display with progress indicators
-        out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
-                         <div id="t-prog" style="color:#e74c3c; font-weight:bold; margin-bottom:10px;">🌐 Starting translation...</div>
-                         <div id="t-display"></div>`;
-        
-        const prog = document.getElementById('t-prog');
-        const display = document.getElementById('t-display');
-        
-        const chunkSize = 3000;
-        const chunks = [];
-        for (let i = 0; i < lastExtractedText.length; i += chunkSize) chunks.push(lastExtractedText.substring(i, i + chunkSize));
+    if (!lastExtractedText) return;
+    lastAction = 'translate';
+    const out = document.getElementById('output-container');
 
-        try {
-            for (let i = 0; i < chunks.length; i++) {
-                prog.innerText = `🌐 Translating part ${i+1} of ${chunks.length}...`;
-                
-                const prompt = `Translate this educational text to formal Bahasa Malaysia. Keep original formatting. Keep technical terms in brackets: "${chunks[i]}"`;
-                const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
-                
-                // Append the translated part to the display area verbatim
-                const partDiv = document.createElement('div');
-                partDiv.style.marginBottom = "20px";
-                partDiv.innerHTML = `<div style="font-size:0.8rem; color:#7f8c8d; border-bottom:1px solid #eee; margin-bottom:5px;">Bahagian ${i+1}</div>` + res.message.content;
-                display.appendChild(partDiv);
-            }
-            prog.style.color = "#27ae60";
-            prog.innerText = "✅ Translation complete!";
-            document.getElementById('btn-regen').style.display = "inline-block";
-        } catch (e) { 
-            prog.style.color = "#c0392b";
-            prog.innerText = "❌ Translation Error."; 
-        }
+    // Show loading only (no partial display)
+    out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
+                     <div id="t-prog" style="color:#e74c3c; font-weight:bold;">
+                     🌐 Translating...</div>`;
+
+    const prog = document.getElementById('t-prog');
+
+    const chunkSize = 3000;
+    const chunks = [];
+    for (let i = 0; i < lastExtractedText.length; i += chunkSize) {
+        chunks.push(lastExtractedText.substring(i, i + chunkSize));
     }
+
+    let fullTranslation = "";
+
+    try {
+        for (let i = 0; i < chunks.length; i++) {
+            prog.innerText = `🌐 Translating part ${i+1} of ${chunks.length}...`;
+
+            const prompt = `Translate this educational text to formal Bahasa Malaysia. Keep original formatting. Keep technical terms in brackets: "${chunks[i]}"`;
+
+            const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+
+            // Store instead of displaying immediately
+            fullTranslation += res.message.content + "\n\n";
+        }
+
+        // ✅ Only display AFTER all parts done
+        out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
+                         <div style="white-space: pre-wrap;">${fullTranslation}</div>`;
+
+        document.getElementById('btn-regen').style.display = "inline-block";
+
+    } catch (e) {
+        console.error(e);
+
+        // ❗ Show partial result instead of losing everything
+        out.innerHTML = `<h3>🌐 Terjemahan Nota (Partial)</h3>
+                         <div style="color:red; font-weight:bold;">❌ Some parts failed, showing partial result.</div>
+                         <div style="white-space: pre-wrap;">${fullTranslation}</div>`;
+    }
+}
 
     function handleRegen() { lastAction === 'translate' ? translateToBM() : runAI(); }
 

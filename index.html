@@ -267,34 +267,57 @@
     lastAction = 'translate';
     const out = document.getElementById('output-container');
 
-    // Show loading only (no partial display)
     out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
                      <div id="t-prog" style="color:#e74c3c; font-weight:bold;">
-                     🌐 Translating...</div>`;
+                     🌐 Preparing translation...</div>`;
 
     const prog = document.getElementById('t-prog');
 
-    const chunkSize = 3000;
+    const chunkSize = 2000; // 🔽 slightly smaller = more stable
     const chunks = [];
-    for (let i = 0; i < lastExtractedText.length; i += chunkSize) {
-        chunks.push(lastExtractedText.substring(i, i + chunkSize));
+
+    // Clean text (important!)
+    const cleanText = lastExtractedText.replace(/\s+/g, ' ').trim();
+
+    for (let i = 0; i < cleanText.length; i += chunkSize) {
+        chunks.push(cleanText.substring(i, i + chunkSize));
     }
 
     let fullTranslation = "";
+
+    // 🔁 Retry helper
+    async function translateChunk(chunk, attempt = 1) {
+        try {
+            const prompt = `Translate this educational text to formal Bahasa Malaysia. Keep formatting. Keep technical terms in brackets:\n\n${chunk}`;
+            const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+            return res.message.content;
+        } catch (err) {
+            if (attempt < 3) {
+                console.warn(`Retrying chunk... attempt ${attempt}`);
+                await new Promise(r => setTimeout(r, 1500)); // wait before retry
+                return translateChunk(chunk, attempt + 1);
+            } else {
+                console.error("Chunk failed after retries:", err);
+                return "[⚠️ Translation failed for this part]";
+            }
+        }
+    }
 
     try {
         for (let i = 0; i < chunks.length; i++) {
             prog.innerText = `🌐 Translating part ${i+1} of ${chunks.length}...`;
 
-            const prompt = `Translate this educational text to formal Bahasa Malaysia. Keep original formatting. Keep technical terms in brackets: "${chunks[i]}"`;
+            const result = await translateChunk(chunks[i]);
 
-            const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+            fullTranslation += result + "\n\n";
 
-            // Store instead of displaying immediately
-            fullTranslation += res.message.content + "\n\n";
+            // ⏱️ delay to avoid rate limit
+            await new Promise(r => setTimeout(r, 800));
         }
 
-        // ✅ Only display AFTER all parts done
+        prog.style.color = "#27ae60";
+        prog.innerText = "✅ Translation complete!";
+
         out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
                          <div style="white-space: pre-wrap;">${fullTranslation}</div>`;
 
@@ -303,9 +326,8 @@
     } catch (e) {
         console.error(e);
 
-        // ❗ Show partial result instead of losing everything
-        out.innerHTML = `<h3>🌐 Terjemahan Nota (Partial)</h3>
-                         <div style="color:red; font-weight:bold;">❌ Some parts failed, showing partial result.</div>
+        out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
+                         <div style="color:red;">❌ Unexpected error occurred.</div>
                          <div style="white-space: pre-wrap;">${fullTranslation}</div>`;
     }
 }

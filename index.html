@@ -264,23 +264,39 @@
         if (!lastExtractedText) return;
         lastAction = 'translate';
         const out = document.getElementById('output-container');
-        out.innerHTML = `<span style="color:#e74c3c; font-weight:bold;">🌐 Translating...</span><br><div id="t-prog" style="font-size:0.8rem; margin-top:5px;"></div>`;
+        
+        // Setup initial display with progress indicators
+        out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
+                         <div id="t-prog" style="color:#e74c3c; font-weight:bold; margin-bottom:10px;">🌐 Starting translation...</div>
+                         <div id="t-display"></div>`;
+        
+        const prog = document.getElementById('t-prog');
+        const display = document.getElementById('t-display');
         
         const chunkSize = 3000;
         const chunks = [];
         for (let i = 0; i < lastExtractedText.length; i += chunkSize) chunks.push(lastExtractedText.substring(i, i + chunkSize));
 
-        let translated = "";
         try {
             for (let i = 0; i < chunks.length; i++) {
-                document.getElementById('t-prog').innerText = `Part ${i+1}/${chunks.length}...`;
+                prog.innerText = `🌐 Translating part ${i+1} of ${chunks.length}...`;
+                
                 const prompt = `Translate this educational text to formal Bahasa Malaysia. Keep original formatting. Keep technical terms in brackets: "${chunks[i]}"`;
                 const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
-                translated += res.message.content + "\n\n";
+                
+                // Append the translated part to the display area verbatim
+                const partDiv = document.createElement('div');
+                partDiv.style.marginBottom = "20px";
+                partDiv.innerHTML = `<div style="font-size:0.8rem; color:#7f8c8d; border-bottom:1px solid #eee; margin-bottom:5px;">Bahagian ${i+1}</div>` + res.message.content;
+                display.appendChild(partDiv);
             }
-            out.innerHTML = `<h3>🌐 Terjemahan Nota</h3><div>${translated}</div>`;
+            prog.style.color = "#27ae60";
+            prog.innerText = "✅ Translation complete!";
             document.getElementById('btn-regen').style.display = "inline-block";
-        } catch (e) { out.innerHTML = "❌ Translation Error."; }
+        } catch (e) { 
+            prog.style.color = "#c0392b";
+            prog.innerText = "❌ Translation Error."; 
+        }
     }
 
     function handleRegen() { lastAction === 'translate' ? translateToBM() : runAI(); }

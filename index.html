@@ -20,11 +20,35 @@
                 radial-gradient(circle at 0% 100%, #d1e3fa 0%, #d1e3fa 25%, transparent 25%),
                 radial-gradient(circle at 100% 100%, #f7d6e0 0%, #f7d6e0 25%, transparent 25%);
             background-size: 100% 100%;
-            background-attachment: fixed; /* Makes background stay in place when scrolling */
+            background-attachment: fixed;
             min-height: 100vh;
             display: flex; flex-direction: column;
             overflow-x: hidden;
         }
+
+        /* ── Puter sign-in banner ── */
+        #puter-banner {
+            display: none;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+            background: #fff3cd; border-bottom: 2px solid #ffc107;
+            padding: 10px 20px;
+            align-items: center; justify-content: center; gap: 12px;
+            flex-wrap: wrap; font-size: 0.95rem; text-align: center;
+        }
+        #puter-banner.visible { display: flex; }
+        #puter-banner a {
+            background: #1a73e8; color: white; padding: 6px 14px;
+            border-radius: 8px; text-decoration: none; font-weight: bold;
+            font-family: 'Handlee', cursive; white-space: nowrap;
+        }
+        #puter-banner a:hover { background: #1558b0; }
+        #banner-status {
+            display: none;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+            background: #d4edda; border-bottom: 2px solid #28a745;
+            padding: 8px 20px; text-align: center; font-size: 0.9rem; color: #155724;
+        }
+        #banner-status.visible { display: block; }
 
         .main-content { display: flex; flex-direction: column; align-items: center; padding-top: 40px; position: relative; z-index: 1; }
         .lang-node { position: absolute; top: 20px; right: 40px; }
@@ -75,6 +99,16 @@
 </head>
 <body>
 
+<!-- Warning banner: shown when user is NOT signed into Puter -->
+<div id="puter-banner">
+    <span>⚠️ This app uses <strong>free AI via Puter</strong>. Please sign in to Puter.com so the AI features work.</span>
+    <a href="https://puter.com" target="_blank" onclick="handlePuterSignIn()">Sign in to Puter (Free)</a>
+    <button onclick="checkPuterLogin()" style="background:none; border:1px solid #999; border-radius:6px; padding:5px 10px; cursor:pointer; font-family:'Handlee';">✅ I've signed in</button>
+</div>
+
+<!-- Green bar: shown briefly when user IS signed in -->
+<div id="banner-status"></div>
+
 <div class="main-content">
     <div class="lang-node">
         <button id="uiLangBtn" onclick="toggleUILanguage()">Bahasa Malaysia</button>
@@ -92,7 +126,6 @@
     </div>
 
     <div class="logo-container">
-        <!-- Logo image updated to logo_learnify.png -->
         <img src="logo_learnify.png" alt="Learnify Logo" class="logo-img">
         <h1 id="main-title">Learnify</h1>
     </div>
@@ -176,6 +209,43 @@
     let currentWord = "";
     let gameActive = false;
 
+    // ── Puter login check ─────────────────────────────────────────
+    async function checkPuterLogin() {
+        try {
+            const user = await puter.auth.getUser();
+            if (user && user.username) {
+                // Signed in — hide warning, show green bar briefly
+                document.getElementById('puter-banner').classList.remove('visible');
+                const statusBar = document.getElementById('banner-status');
+                statusBar.innerText = `✅ Signed in to Puter as @${user.username} — Gemini AI is ready!`;
+                statusBar.classList.add('visible');
+                setTimeout(() => statusBar.classList.remove('visible'), 5000);
+                // Push content down while banner is showing
+                document.querySelector('.main-content').style.paddingTop = '70px';
+                setTimeout(() => document.querySelector('.main-content').style.paddingTop = '40px', 5000);
+            } else {
+                showLoginBanner();
+            }
+        } catch (e) {
+            showLoginBanner();
+        }
+    }
+
+    function showLoginBanner() {
+        document.getElementById('puter-banner').classList.add('visible');
+        document.getElementById('banner-status').classList.remove('visible');
+        document.querySelector('.main-content').style.paddingTop = '90px';
+    }
+
+    // When user clicks "Sign in to Puter", recheck after a few seconds
+    function handlePuterSignIn() {
+        setTimeout(checkPuterLogin, 5000);
+    }
+
+    // Run on page load (give Puter.js 1.5s to initialise)
+    window.addEventListener('load', () => setTimeout(checkPuterLogin, 1500));
+    // ─────────────────────────────────────────────────────────────
+
     const uiText = {
         en: { 
             title: "Learnify", upload: "Upload PDF or image", initial: "Upload a file to begin...",
@@ -227,7 +297,16 @@
                 lastExtractedText = await puter.ai.img2txt(file);
             }
             out.innerHTML = "✅ Ready! Adjust settings and click Generate.";
-        } catch (e) { out.innerHTML = "❌ Error reading file."; }
+        } catch (e) {
+            console.error(e);
+            const msg = (e.message || "").toLowerCase();
+            if (msg.includes('auth') || msg.includes('login') || msg.includes('sign')) {
+                out.innerHTML = "❌ Please sign in to Puter first using the banner at the top, then try again.";
+                showLoginBanner();
+            } else {
+                out.innerHTML = "❌ Error reading file. Please try again.";
+            }
+        }
     }
 
     async function runAI() {
@@ -259,78 +338,84 @@
                 out.innerHTML = `<h3>🧑‍🏫 Teacher Material</h3><div>${qContent}</div><div class="answer-box"><strong>Answer Key:</strong><br>${aContent}</div>`;
             }
             document.getElementById('btn-regen').style.display = "inline-block";
-        } catch (e) { out.innerHTML = "❌ AI Error."; }
-    }
-
-    async function translateToBM() {
-    if (!lastExtractedText) return;
-    lastAction = 'translate';
-    const out = document.getElementById('output-container');
-
-    out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
-                     <div id="t-prog" style="color:#e74c3c; font-weight:bold;">
-                     🌐 Preparing translation...</div>`;
-
-    const prog = document.getElementById('t-prog');
-
-    const chunkSize = 2000; // 🔽 slightly smaller = more stable
-    const chunks = [];
-
-    // Clean text (important!)
-    const cleanText = lastExtractedText.replace(/\s+/g, ' ').trim();
-
-    for (let i = 0; i < cleanText.length; i += chunkSize) {
-        chunks.push(cleanText.substring(i, i + chunkSize));
-    }
-
-    let fullTranslation = "";
-
-    // 🔁 Retry helper
-    async function translateChunk(chunk, attempt = 1) {
-        try {
-            const prompt = `Translate this educational text to formal Bahasa Malaysia. Keep formatting. Keep technical terms in brackets:\n\n${chunk}`;
-            const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
-            return res.message.content;
-        } catch (err) {
-            if (attempt < 3) {
-                console.warn(`Retrying chunk... attempt ${attempt}`);
-                await new Promise(r => setTimeout(r, 1500)); // wait before retry
-                return translateChunk(chunk, attempt + 1);
+        } catch (e) {
+            console.error(e);
+            const msg = (e.message || "").toLowerCase();
+            if (msg.includes('auth') || msg.includes('login') || msg.includes('sign')) {
+                out.innerHTML = "❌ Please sign in to Puter first using the banner at the top, then try again.";
+                showLoginBanner();
             } else {
-                console.error("Chunk failed after retries:", err);
-                return "[⚠️ Translation failed for this part]";
+                out.innerHTML = "❌ AI Error. Please try again.";
             }
         }
     }
 
-    try {
-        for (let i = 0; i < chunks.length; i++) {
-            prog.innerText = `🌐 Translating part ${i+1} of ${chunks.length}...`;
+    async function translateToBM() {
+        if (!lastExtractedText) return;
+        lastAction = 'translate';
+        const out = document.getElementById('output-container');
 
-            const result = await translateChunk(chunks[i]);
+        out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
+                         <div id="t-prog" style="color:#e74c3c; font-weight:bold;">🌐 Preparing translation...</div>`;
 
-            fullTranslation += result + "\n\n";
+        const prog = document.getElementById('t-prog');
+        const chunkSize = 2000;
+        const chunks = [];
+        const cleanText = lastExtractedText.replace(/\s+/g, ' ').trim();
 
-            // ⏱️ delay to avoid rate limit
-            await new Promise(r => setTimeout(r, 800));
+        for (let i = 0; i < cleanText.length; i += chunkSize) {
+            chunks.push(cleanText.substring(i, i + chunkSize));
         }
 
-        prog.style.color = "#27ae60";
-        prog.innerText = "✅ Translation complete!";
+        let fullTranslation = "";
 
-        out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
-                         <div style="white-space: pre-wrap;">${fullTranslation}</div>`;
+        async function translateChunk(chunk, attempt = 1) {
+            try {
+                const prompt = `Translate this educational text to formal Bahasa Malaysia. Keep formatting. Keep technical terms in brackets:\n\n${chunk}`;
+                const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+                return res.message.content;
+            } catch (err) {
+                if (attempt < 3) {
+                    console.warn(`Retrying chunk... attempt ${attempt}`);
+                    await new Promise(r => setTimeout(r, 1500));
+                    return translateChunk(chunk, attempt + 1);
+                } else {
+                    console.error("Chunk failed after retries:", err);
+                    return "[⚠️ Translation failed for this part]";
+                }
+            }
+        }
 
-        document.getElementById('btn-regen').style.display = "inline-block";
+        try {
+            for (let i = 0; i < chunks.length; i++) {
+                prog.innerText = `🌐 Translating part ${i+1} of ${chunks.length}...`;
+                const result = await translateChunk(chunks[i]);
+                fullTranslation += result + "\n\n";
+                await new Promise(r => setTimeout(r, 800));
+            }
 
-    } catch (e) {
-        console.error(e);
+            prog.style.color = "#27ae60";
+            prog.innerText = "✅ Translation complete!";
 
-        out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
-                         <div style="color:red;">❌ Unexpected error occurred.</div>
-                         <div style="white-space: pre-wrap;">${fullTranslation}</div>`;
+            out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
+                             <div style="white-space: pre-wrap;">${fullTranslation}</div>`;
+
+            document.getElementById('btn-regen').style.display = "inline-block";
+
+        } catch (e) {
+            console.error(e);
+            const msg = (e.message || "").toLowerCase();
+            if (msg.includes('auth') || msg.includes('login') || msg.includes('sign')) {
+                out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
+                                 <div style="color:red;">❌ Please sign in to Puter first using the banner at the top.</div>`;
+                showLoginBanner();
+            } else {
+                out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
+                                 <div style="color:red;">❌ Unexpected error occurred.</div>
+                                 <div style="white-space: pre-wrap;">${fullTranslation}</div>`;
+            }
+        }
     }
-}
 
     function handleRegen() { lastAction === 'translate' ? translateToBM() : runAI(); }
 

@@ -93,6 +93,20 @@
         .translation-body li { margin-bottom: 5px; }
         .translation-body strong { color: #1a5276; }
 
+        /* Summary-specific */
+        .summary-body .key-box {
+            background: linear-gradient(135deg, #f3e6ff, #e8d5ff);
+            border-left: 4px solid #8e44ad; border-radius: 10px;
+            padding: 14px 18px; margin-top: 20px;
+        }
+        .summary-body .key-box::before {
+            content: "⭐ Key Takeaways";
+            display: block; font-weight: bold; color: #6c3483;
+            font-family: 'Coming Soon', cursive; margin-bottom: 8px; font-size: 1rem;
+        }
+        .summary-body .key-box ul { margin: 0; padding-left: 18px; }
+        .summary-body .key-box li { color: #4a235a; margin-bottom: 5px; }
+
         .footer-credit-bar { width: 100%; padding: 20px 0; text-align: center; margin-top: auto; font-weight: bold; background: rgba(255,255,255,0.75); backdrop-filter: blur(6px); border-top: 1px solid rgba(0,0,0,0.08); }
 
         #games-wrapper { display: flex; gap: 16px; margin-top: 30px; flex-wrap: wrap; }
@@ -191,9 +205,11 @@
                 </div>
             </div>
             
-            <div style="display: flex; justify-content: center; gap: 5px;">
+            <div style="display: flex; justify-content: center; gap: 5px; flex-wrap: wrap;">
                 <button id="btn-generate" class="btn" style="background:#3498db; color:white;" onclick="runAI()">✨ Generate Questions</button>
                 <button id="btn-translate" class="btn" style="background:#e74c3c; color:white;" onclick="translateToBM()">🌐 Translate to BM</button>
+                <button id="btn-summarize" class="btn" style="background:#8e44ad; color:white;" onclick="summarizeDoc()">📋 Summarize</button>
+                <button id="btn-translate-summary" class="btn" style="background:#c0392b; color:white; display:none;" onclick="translateSummary()">🌐 Translate Summary</button>
                 <button id="btn-regen" class="btn" style="background:#f39c12; color:white; display:none;" onclick="handleRegen()">🔄 Regenerate</button>
             </div>
         </div>
@@ -305,13 +321,13 @@
     const uiText = {
         en: { 
             title: "Learnify", upload: "Upload PDF or image", initial: "Upload a file to begin...",
-            generate: "✨ Generate Questions", translate: "🌐 Translate to BM",
+            generate: "✨ Generate Questions", translate: "🌐 Translate to BM", summarize: "📋 Summarize", translateSummary: "🌐 Translate Summary",
             processing: "✨ Analyzing and Formatting...", type: "QUESTION TYPE:", count: "AMOUNT:", mode: "DISPLAY MODE:",
             disclaimer: "Disclaimer: AI may occasionally provide incorrect information. Please cross-reference with your original source."
         },
         ms: { 
             title: "Learnify", upload: "Muat Naik PDF atau Imej", initial: "Muat naik fail untuk bermula...",
-            generate: "✨ Jana Soalan", translate: "🌐 Terjemah ke BM",
+            generate: "✨ Jana Soalan", translate: "🌐 Terjemah ke BM", summarize: "📋 Ringkaskan", translateSummary: "🌐 Terjemah Ringkasan",
             processing: "✨ Menganalisis dan Menyusun...", type: "JENIS SOALAN:", count: "JUMLAH:", mode: "MOD PAPARAN:",
             disclaimer: "Penafian: AI mungkin memberikan maklumat yang salah. Sila rujuk semula sumber asal anda."
         }
@@ -369,6 +385,7 @@
 
     async function runAI() {
         lastAction = 'generate';
+        document.getElementById('btn-translate-summary').style.display = 'none';
         const out = document.getElementById('output-container');
         const qType = document.getElementById('qType').value;
         const qCount = document.getElementById('qCount').value;
@@ -411,6 +428,7 @@
     async function translateToBM() {
         if (!lastExtractedText) return;
         lastAction = 'translate';
+        document.getElementById('btn-translate-summary').style.display = 'none';
         const out = document.getElementById('output-container');
 
         out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
@@ -491,7 +509,99 @@ Text to translate:\n\n${chunk}`;
         }
     }
 
-    function handleRegen() { lastAction === 'translate' ? translateToBM() : runAI(); }
+    function handleRegen() {
+        if (lastAction === 'translate') translateToBM();
+        else if (lastAction === 'summarize') summarizeDoc();
+        else if (lastAction === 'translate-summary') translateSummary();
+        else runAI();
+    }
+
+    // ── Summarize ─────────────────────────────────────────────────
+    let lastSummaryHTML = "";
+
+    async function summarizeDoc() {
+        if (!lastExtractedText) { alert("Upload a file first!"); return; }
+        lastAction = 'summarize';
+        lastSummaryHTML = "";
+        const out = document.getElementById('output-container');
+        document.getElementById('btn-translate-summary').style.display = 'none';
+        out.innerHTML = `<span style="color:#8e44ad; font-weight:bold;">📋 Summarizing document...</span>`;
+
+        const prompt = `You are an expert academic summarizer. Read the following educational text and produce a well-structured summary in ${currentUILang === 'ms' ? 'formal Bahasa Malaysia' : 'English'}.
+
+Structure the summary as clean HTML using ONLY these tags:
+- <h3> for main topic headings
+- <h4> for sub-topic headings
+- <p> for paragraph summaries
+- <ul><li> for key point lists
+- <strong> for important terms or keywords
+- <div class="key-box"> for a "Key Takeaways" section at the end with 3–5 bullet points
+
+Rules:
+- Be concise but comprehensive — capture all major concepts
+- Group related ideas under clear headings
+- Highlight key technical terms with <strong>
+- End with a <div class="key-box"> Key Takeaways section
+- Do NOT include \`\`\`html fences, DOCTYPE, <html>, <head>, or <body> tags
+
+Text to summarize:
+"${lastExtractedText.substring(0, 8000)}"`;
+
+        try {
+            const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+            lastSummaryHTML = res.message.content.replace(/```html|```/g, '').trim();
+
+            out.innerHTML = `
+                <h3>📋 Ringkasan Dokumen / Document Summary</h3>
+                <div class="translation-body summary-body">${lastSummaryHTML}</div>
+            `;
+            document.getElementById('btn-translate-summary').style.display = 'inline-block';
+            document.getElementById('btn-regen').style.display = 'inline-block';
+        } catch (e) {
+            console.error(e);
+            const msg = (e.message || "").toLowerCase();
+            if (msg.includes('auth') || msg.includes('login') || msg.includes('sign')) {
+                out.innerHTML = "❌ Please sign in to Puter first using the banner at the top.";
+                showLoginBanner();
+            } else {
+                out.innerHTML = "❌ Summarization failed. Please try again.";
+            }
+        }
+    }
+
+    // ── Translate Summary to BM ───────────────────────────────────
+    async function translateSummary() {
+        if (!lastSummaryHTML) { alert("Please summarize a document first!"); return; }
+        lastAction = 'translate-summary';
+        const out = document.getElementById('output-container');
+        out.innerHTML = `<span style="color:#c0392b; font-weight:bold;">🌐 Menterjemah ringkasan...</span>`;
+
+        const prompt = `Translate the following HTML summary into formal Bahasa Malaysia. Keep all HTML tags exactly as they are. Only translate the visible text content inside the tags. Keep technical terms in square brackets e.g. [ransomware]. Do NOT add or remove any HTML tags. Do NOT include \`\`\`html fences.
+
+HTML to translate:
+${lastSummaryHTML}`;
+
+        try {
+            const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+            const translated = res.message.content.replace(/```html|```/g, '').trim();
+
+            out.innerHTML = `
+                <h3>🌐 Ringkasan dalam Bahasa Malaysia</h3>
+                <div class="translation-body summary-body">${translated}</div>
+            `;
+            document.getElementById('btn-regen').style.display = 'inline-block';
+        } catch (e) {
+            console.error(e);
+            const msg = (e.message || "").toLowerCase();
+            if (msg.includes('auth') || msg.includes('login') || msg.includes('sign')) {
+                out.innerHTML = "❌ Please sign in to Puter first using the banner at the top.";
+                showLoginBanner();
+            } else {
+                out.innerHTML = "❌ Translation failed. Please try again.";
+            }
+        }
+    }
+    // ─────────────────────────────────────────────────────────────
 
     function toggleGame() {
         if(!lastExtractedText) { alert("Upload a file first!"); return; }

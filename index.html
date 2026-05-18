@@ -15,11 +15,10 @@
         body {
             margin: 0; padding: 0;
             font-family: 'Handlee', cursive;
-            background: #ffffff;
-            background-image: 
-                radial-gradient(circle at 0% 100%, #d1e3fa 0%, #d1e3fa 25%, transparent 25%),
-                radial-gradient(circle at 100% 100%, #f7d6e0 0%, #f7d6e0 25%, transparent 25%);
-            background-size: 100% 100%;
+            background-color: #fdf6f0;
+            background-image: url('42.jpg');
+            background-size: cover;
+            background-position: center;
             background-attachment: fixed;
             min-height: 100vh;
             display: flex; flex-direction: column;
@@ -73,7 +72,7 @@
 
         .disclaimer-bar { background: #fff9c4; padding: 10px 20px; font-size: 0.9rem; margin: 10px 0; border-radius: 5px; max-width: 600px; text-align: center; border: 1px solid #f1c40f; }
 
-        .app-container { width: 80%; max-width: 800px; margin-top: 20px; background: rgba(255,255,255,0.8); padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .app-container { width: 80%; max-width: 800px; margin-top: 20px; background: rgba(255,255,255,0.75); backdrop-filter: blur(6px); padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
 
         .btn { padding: 10px 22px; margin: 5px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Handlee'; transition: all 0.3s ease; }
         #uiLangBtn { background: #1a73e8; color: white; border-radius: 10px; }
@@ -85,7 +84,7 @@
         }
         .answer-box { background: #f1f8ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db; margin-top: 15px; }
 
-        .footer-credit-bar { width: 100%; padding: 20px 0; text-align: center; margin-top: auto; font-weight: bold; background: rgba(255,255,255,0.9); border-top: 1px solid #ddd; }
+        .footer-credit-bar { width: 100%; padding: 20px 0; text-align: center; margin-top: auto; font-weight: bold; background: rgba(255,255,255,0.75); backdrop-filter: blur(6px); border-top: 1px solid rgba(0,0,0,0.08); }
 
         #game-section { margin-top: 30px; padding: 20px; background: #fffcf0; border-radius: 15px; border: 1px solid #f1c40f; text-align: center; }
         .play-game-btn { background: #e67e22; color: white; width: 100%; opacity: 0.4; }

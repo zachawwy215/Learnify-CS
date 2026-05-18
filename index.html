@@ -84,6 +84,15 @@
         }
         .answer-box { background: #f1f8ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db; margin-top: 15px; }
 
+        /* Translated note styles */
+        .translation-body { line-height: 1.8; color: #2c3e50; }
+        .translation-body h3 { font-family: 'Coming Soon', cursive; color: #2980b9; border-bottom: 2px solid #d6eaf8; padding-bottom: 4px; margin-top: 20px; }
+        .translation-body h4 { color: #1a5276; margin-top: 14px; margin-bottom: 4px; }
+        .translation-body p  { margin: 8px 0; }
+        .translation-body ul, .translation-body ol { padding-left: 22px; margin: 8px 0; }
+        .translation-body li { margin-bottom: 5px; }
+        .translation-body strong { color: #1a5276; }
+
         .footer-credit-bar { width: 100%; padding: 20px 0; text-align: center; margin-top: auto; font-weight: bold; background: rgba(255,255,255,0.75); backdrop-filter: blur(6px); border-top: 1px solid rgba(0,0,0,0.08); }
 
         #games-wrapper { display: flex; gap: 16px; margin-top: 30px; flex-wrap: wrap; }
@@ -420,7 +429,18 @@
 
         async function translateChunk(chunk, attempt = 1) {
             try {
-                const prompt = `Translate this educational text to formal Bahasa Malaysia. Keep formatting. Keep technical terms in brackets:\n\n${chunk}`;
+                const prompt = `Translate this educational text to formal Bahasa Malaysia. Keep technical terms in square brackets e.g. [ransomware].
+
+Format the output as clean HTML using these tags only:
+- <h3> for main section headings
+- <h4> for sub-headings  
+- <p> for paragraphs
+- <ul><li> for bullet point lists
+- <ol><li> for numbered lists
+- <strong> for bold key terms
+Do NOT include \`\`\`html fences, DOCTYPE, <html>, <head>, or <body> tags. Return only the formatted HTML content.
+
+Text to translate:\n\n${chunk}`;
                 const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
                 return res.message.content;
             } catch (err) {
@@ -446,8 +466,13 @@
             prog.style.color = "#27ae60";
             prog.innerText = "✅ Translation complete!";
 
-            out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
-                             <div style="white-space: pre-wrap;">${fullTranslation}</div>`;
+            // Strip any stray markdown fences the model may have added
+            const cleanedTranslation = fullTranslation.replace(/```html|```/g, '').trim();
+
+            out.innerHTML = `
+                <h3>🌐 Terjemahan Nota</h3>
+                <div class="translation-body">${cleanedTranslation}</div>
+            `;
 
             document.getElementById('btn-regen').style.display = "inline-block";
 

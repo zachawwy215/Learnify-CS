@@ -86,9 +86,26 @@
 
         .footer-credit-bar { width: 100%; padding: 20px 0; text-align: center; margin-top: auto; font-weight: bold; background: rgba(255,255,255,0.75); backdrop-filter: blur(6px); border-top: 1px solid rgba(0,0,0,0.08); }
 
-        #game-section { margin-top: 30px; padding: 20px; background: #fffcf0; border-radius: 15px; border: 1px solid #f1c40f; text-align: center; }
+        #games-wrapper { display: flex; gap: 16px; margin-top: 30px; flex-wrap: wrap; }
+        .game-panel { flex: 1; min-width: 260px; padding: 18px; border-radius: 15px; text-align: center; }
+        #game-section  { background: #fffcf0; border: 1px solid #f1c40f; }
+        #flash-section { background: #f0f4ff; border: 1px solid #7b9ef0; }
         .play-game-btn { background: #e67e22; color: white; width: 100%; opacity: 0.4; }
         .play-game-btn.enabled { opacity: 1; cursor: pointer; }
+        .flash-start-btn { background: #5b6ef5; color: white; width: 100%; opacity: 0.4; }
+        .flash-start-btn.enabled { opacity: 1; cursor: pointer; }
+        #timer-bar-wrap { background: #dde; border-radius: 8px; height: 10px; margin: 8px 0; overflow: hidden; }
+        #timer-bar { height: 100%; border-radius: 8px; transition: width 1s linear, background 1s; background: #5b6ef5; width: 100%; }
+        .choice-btn {
+            display: block; width: 100%; margin: 5px 0; padding: 9px 12px;
+            border: 2px solid #c0c8f8; border-radius: 10px; background: white;
+            cursor: pointer; font-family: 'Handlee', cursive; font-size: 0.95rem;
+            transition: background 0.2s, border 0.2s; text-align: left;
+        }
+        .choice-btn:hover:not(:disabled) { background: #eef0ff; border-color: #5b6ef5; }
+        .choice-btn.correct { background: #d4edda; border-color: #28a745; }
+        .choice-btn.wrong   { background: #f8d7da; border-color: #dc3545; }
+        .choice-btn:disabled { cursor: default; }
 
         @media (max-width: 1000px) {
             .instruction-box { position: static; width: 90%; margin-bottom: 20px; }
@@ -174,21 +191,52 @@
 
         <div id="output-container">Waiting for document upload...</div>
 
-        <div id="game-section">
-            <div style="font-weight:bold; color:#d35400; margin-bottom:10px;">🧩 Terminology Scramble | Streak: <span id="streak-count">0</span></div>
-            <button id="start-game-btn" class="btn play-game-btn" onclick="toggleGame()">Start Word Scramble</button>
-            
-            <div id="game-content" style="display:none; margin-top:15px;">
-                <div id="scrambled-display" style="font-size:1.8rem; font-weight:bold; color:#e74c3c; letter-spacing:4px; margin:10px 0;"></div>
-                <div id="hint-text" style="font-size:0.9rem; color:#7f8c8d; font-style:italic; margin-bottom:10px; min-height:1.2rem;"></div>
-                <input type="text" id="game-input" style="padding:10px; width:70%; border-radius:5px; border:1px solid #ccc; margin-bottom:10px;" placeholder="Type answer...">
-                <div>
-                    <button class="btn" style="background:#e67e22; color:white;" onclick="checkScramble()">Submit</button>
-                    <button class="btn" style="background:#9b59b6; color:white; font-size:0.8rem;" onclick="showHint()">Hint</button>
-                    <button class="btn" style="background:#95a5a6; color:white; font-size:0.8rem;" onclick="giveUp()">Give Up</button>
+        <div id="games-wrapper">
+
+            <!-- ── Terminology Scramble ── -->
+            <div id="game-section" class="game-panel">
+                <div style="font-weight:bold; color:#d35400; margin-bottom:10px;">🧩 Terminology Scramble | Streak: <span id="streak-count">0</span></div>
+                <button id="start-game-btn" class="btn play-game-btn" onclick="toggleGame()">Start Word Scramble</button>
+                <div id="game-content" style="display:none; margin-top:15px;">
+                    <div id="scrambled-display" style="font-size:1.8rem; font-weight:bold; color:#e74c3c; letter-spacing:4px; margin:10px 0;"></div>
+                    <div id="hint-text" style="font-size:0.9rem; color:#7f8c8d; font-style:italic; margin-bottom:10px; min-height:1.2rem;"></div>
+                    <input type="text" id="game-input" style="padding:10px; width:70%; border-radius:5px; border:1px solid #ccc; margin-bottom:10px;" placeholder="Type answer...">
+                    <div>
+                        <button class="btn" style="background:#e67e22; color:white;" onclick="checkScramble()">Submit</button>
+                        <button class="btn" style="background:#9b59b6; color:white; font-size:0.8rem;" onclick="showHint()">Hint</button>
+                        <button class="btn" style="background:#95a5a6; color:white; font-size:0.8rem;" onclick="giveUp()">Give Up</button>
+                    </div>
+                    <p id="game-feedback" style="font-weight:bold; margin-top:10px; min-height:20px;"></p>
                 </div>
-                <p id="game-feedback" style="font-weight:bold; margin-top:10px; min-height:20px;"></p>
             </div>
+
+            <!-- ── Flash Quiz ── -->
+            <div id="flash-section" class="game-panel">
+                <div style="font-weight:bold; color:#3a4dbf; margin-bottom:6px;">⚡ Flash Quiz | Streak: <span id="flash-streak">0</span></div>
+
+                <!-- Difficulty picker (lobby) -->
+                <div id="flash-lobby">
+                    <div style="margin-bottom:10px; font-size:0.85rem; color:#555;">Choose difficulty:</div>
+                    <div style="display:flex; gap:6px; justify-content:center; margin-bottom:12px;">
+                        <button class="btn" id="diff-easy"   onclick="setDiff('easy')"   style="background:#27ae60;color:white;font-size:0.8rem;">🟢 Easy<br><small>15s</small></button>
+                        <button class="btn" id="diff-medium" onclick="setDiff('medium')" style="background:#f39c12;color:white;font-size:0.8rem;">🟡 Medium<br><small>10s</small></button>
+                        <button class="btn" id="diff-hard"   onclick="setDiff('hard')"   style="background:#e74c3c;color:white;font-size:0.8rem;">🔴 Hard<br><small>5s</small></button>
+                    </div>
+                    <div id="flash-diff-label" style="font-size:0.8rem; color:#888; margin-bottom:8px;">Selected: Easy (15s)</div>
+                    <button id="flash-start-btn" class="btn flash-start-btn" onclick="toggleFlash()">Start Flash Quiz</button>
+                </div>
+
+                <!-- Active game -->
+                <div id="flash-game" style="display:none; margin-top:10px;">
+                    <div id="timer-bar-wrap"><div id="timer-bar"></div></div>
+                    <div id="flash-timer-label" style="font-size:0.8rem; color:#5b6ef5; margin-bottom:6px; font-weight:bold;"></div>
+                    <div id="flash-question" style="font-size:0.95rem; font-weight:bold; color:#2c3e50; margin:10px 0; min-height:48px;"></div>
+                    <div id="flash-choices"></div>
+                    <p id="flash-feedback" style="font-weight:bold; margin-top:8px; min-height:20px; font-size:0.9rem;"></p>
+                    <button class="btn" onclick="toggleFlash()" style="background:#95a5a6; color:white; font-size:0.75rem; margin-top:4px;">Stop</button>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -280,6 +328,8 @@
         document.getElementById('file-label').innerText = "📄 " + file.name;
         document.getElementById('setup-section').style.display = "block";
         document.getElementById('start-game-btn').classList.add('enabled');
+        document.getElementById('flash-start-btn').classList.add('enabled');
+        flashQBank = []; // reset Q bank for new document
         const out = document.getElementById('output-container');
         out.innerHTML = "Reading file...";
 
@@ -444,6 +494,154 @@
             document.getElementById('game-feedback').innerText = "❌ Try again!";
         }
     }
+
+    // ── Flash Quiz ────────────────────────────────────────────────
+    const DIFF_TIMES = { easy: 15, medium: 10, hard: 5 };
+    let flashDiff = 'easy';
+    let flashActive = false;
+    let flashStreak = 0;
+    let flashTimer = null;
+    let flashTimeLeft = 15;
+    let flashQBank = [];   // pre-generated Q objects
+    let flashLoading = false;
+
+    function setDiff(d) {
+        flashDiff = d;
+        const labels = { easy: 'Easy (15s)', medium: 'Medium (10s)', hard: 'Hard (5s)' };
+        document.getElementById('flash-diff-label').innerText = 'Selected: ' + labels[d];
+        ['easy','medium','hard'].forEach(x => {
+            document.getElementById('diff-'+x).style.opacity = (x === d) ? '1' : '0.5';
+        });
+    }
+    setDiff('easy'); // default highlight
+
+    function toggleFlash() {
+        if (!lastExtractedText) { alert("Upload a file first!"); return; }
+        flashActive = !flashActive;
+        if (flashActive) {
+            flashStreak = 0;
+            document.getElementById('flash-streak').innerText = '0';
+            document.getElementById('flash-lobby').style.display = 'none';
+            document.getElementById('flash-game').style.display = 'block';
+            loadFlashQuestion();
+        } else {
+            stopFlash();
+        }
+    }
+
+    function stopFlash() {
+        flashActive = false;
+        clearInterval(flashTimer);
+        document.getElementById('flash-lobby').style.display = 'block';
+        document.getElementById('flash-game').style.display = 'none';
+    }
+
+    async function loadFlashQuestion() {
+        if (!flashActive) return;
+        clearInterval(flashTimer);
+
+        document.getElementById('flash-question').innerText = '⏳ Generating question...';
+        document.getElementById('flash-choices').innerHTML = '';
+        document.getElementById('flash-feedback').innerText = '';
+        document.getElementById('timer-bar').style.width = '100%';
+        document.getElementById('timer-bar').style.background = '#5b6ef5';
+
+        // Use cached bank if available, otherwise generate a batch
+        if (flashQBank.length === 0) {
+            try {
+                const prompt = `Based on this text: "${lastExtractedText.substring(0, 5000)}"
+Generate 5 multiple-choice flash quiz questions. Each question must have exactly 3 choices (A, B, C) and one correct answer.
+Return ONLY a JSON array, no markdown, no extra text. Format:
+[{"q":"Question text","choices":["A. option","B. option","C. option"],"answer":"A"}]`;
+                const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+                let raw = res.message.content.trim().replace(/```json|```/g, '').trim();
+                flashQBank = JSON.parse(raw);
+            } catch(e) {
+                console.error(e);
+                document.getElementById('flash-question').innerText = '❌ Could not generate question. Make sure you are signed into Puter.';
+                return;
+            }
+        }
+
+        // Pick a random question from the bank
+        const idx = Math.floor(Math.random() * flashQBank.length);
+        const q = flashQBank.splice(idx, 1)[0];
+
+        document.getElementById('flash-question').innerText = q.q;
+
+        // Render choices
+        const choicesDiv = document.getElementById('flash-choices');
+        choicesDiv.innerHTML = '';
+        q.choices.forEach((c, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'choice-btn';
+            btn.innerText = c;
+            btn.onclick = () => answerFlash(btn, c, q.answer, q.choices);
+            choicesDiv.appendChild(btn);
+        });
+
+        // Start countdown
+        flashTimeLeft = DIFF_TIMES[flashDiff];
+        updateTimerBar(flashTimeLeft, DIFF_TIMES[flashDiff]);
+        flashTimer = setInterval(() => {
+            flashTimeLeft--;
+            updateTimerBar(flashTimeLeft, DIFF_TIMES[flashDiff]);
+            if (flashTimeLeft <= 0) {
+                clearInterval(flashTimer);
+                timeOut(q.answer, q.choices);
+            }
+        }, 1000);
+    }
+
+    function updateTimerBar(left, total) {
+        const pct = (left / total) * 100;
+        const bar = document.getElementById('timer-bar');
+        bar.style.width = pct + '%';
+        bar.style.background = pct > 50 ? '#5b6ef5' : pct > 25 ? '#f39c12' : '#e74c3c';
+        document.getElementById('flash-timer-label').innerText = `⏱ ${left}s`;
+    }
+
+    function answerFlash(btn, chosen, correct, choices) {
+        clearInterval(flashTimer);
+        disableChoices();
+        const chosenLetter = chosen.charAt(0);
+        if (chosenLetter === correct) {
+            btn.classList.add('correct');
+            flashStreak++;
+            document.getElementById('flash-streak').innerText = flashStreak;
+            document.getElementById('flash-feedback').innerText = '✅ Correct!';
+            document.getElementById('flash-feedback').style.color = '#27ae60';
+        } else {
+            btn.classList.add('wrong');
+            highlightCorrect(correct);
+            flashStreak = 0;
+            document.getElementById('flash-streak').innerText = '0';
+            document.getElementById('flash-feedback').innerText = '❌ Wrong!';
+            document.getElementById('flash-feedback').style.color = '#e74c3c';
+        }
+        setTimeout(() => { if (flashActive) loadFlashQuestion(); }, 1400);
+    }
+
+    function timeOut(correct, choices) {
+        disableChoices();
+        highlightCorrect(correct);
+        flashStreak = 0;
+        document.getElementById('flash-streak').innerText = '0';
+        document.getElementById('flash-feedback').innerText = "⌛ Time's up!";
+        document.getElementById('flash-feedback').style.color = '#e74c3c';
+        setTimeout(() => { if (flashActive) loadFlashQuestion(); }, 1400);
+    }
+
+    function disableChoices() {
+        document.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+    }
+
+    function highlightCorrect(correctLetter) {
+        document.querySelectorAll('.choice-btn').forEach(b => {
+            if (b.innerText.charAt(0) === correctLetter) b.classList.add('correct');
+        });
+    }
+    // ─────────────────────────────────────────────────────────────
 
     function showHint() { document.getElementById('hint-text').innerText = `Starts with "${currentWord[0]}" and ends with "${currentWord[currentWord.length - 1]}"`; }
     function giveUp() { document.getElementById('game-feedback').innerText = `Answer: ${currentWord}`; setTimeout(refreshGame, 2000); }

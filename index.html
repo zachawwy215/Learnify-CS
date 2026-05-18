@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Learnify - AI Study Assistant</title>
-    
-    <!-- External Libraries -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://js.puter.com/v2/"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Coming+Soon&family=Handlee&display=swap');
+
+        * { box-sizing: border-box; }
 
         body {
             margin: 0; padding: 0;
@@ -25,7 +26,7 @@
             overflow-x: hidden;
         }
 
-        /* ── Puter sign-in banner ── */
+        /* ── Banners ── */
         #puter-banner {
             display: none;
             position: fixed; top: 0; left: 0; right: 0; z-index: 999;
@@ -49,51 +50,123 @@
         }
         #banner-status.visible { display: block; }
 
-        .main-content { display: flex; flex-direction: column; align-items: center; padding-top: 40px; position: relative; z-index: 1; }
+        /* ── Layout ── */
+        .main-content {
+            display: flex; flex-direction: column; align-items: center;
+            padding-top: 40px; position: relative; z-index: 1;
+        }
         .lang-node { position: absolute; top: 20px; right: 40px; }
 
         .instruction-box {
-            position: absolute; top: 80px; left: 40px; background: #f0c9c9;
+            position: absolute; top: 80px; left: 40px; background: rgba(240,201,201,0.92);
             padding: 15px; border-radius: 30px; width: 220px;
-            box-shadow: 2px 4px 10px rgba(0,0,0,0.1); font-size: 0.85rem; line-height: 1.3;
+            box-shadow: 2px 4px 10px rgba(0,0,0,0.1); font-size: 0.85rem; line-height: 1.5;
         }
         .instruction-box h2 { font-family: 'Coming Soon', cursive; font-size: 1rem; text-align: center; margin-top: 0; }
+        .instruction-box ul { list-style: none; padding: 0; margin: 0; }
+        .instruction-box li { margin-bottom: 4px; }
 
-        .logo-container { text-align: center; margin-bottom: 20px; }
+        .logo-container { text-align: center; margin-bottom: 12px; }
         .logo-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
-
         h1 { font-family: 'Coming Soon', cursive; color: #2980b9; font-size: 3rem; margin: 5px 0; }
 
+        /* ── Input row ── */
+        .input-row {
+            display: flex; align-items: stretch; gap: 12px;
+            margin: 14px 0; width: 82%; max-width: 820px; flex-wrap: wrap; justify-content: center;
+        }
         .upload-area {
-            background: #e0e0e0; padding: 15px 50px; border-radius: 50px;
-            font-size: 1.5rem; cursor: pointer; margin: 20px 0; border: 2px dashed #3498db;
+            background: rgba(255,255,255,0.88); padding: 14px 28px; border-radius: 16px;
+            font-size: 1.05rem; cursor: pointer; border: 2px dashed #3498db;
             font-family: 'Coming Soon', cursive; transition: 0.2s;
+            display: flex; align-items: center; flex-shrink: 0; white-space: nowrap;
+        }
+        .upload-area:hover { background: #dff0fd; }
+        .or-divider { display: flex; align-items: center; font-weight: bold; color: #999; font-size: 0.9rem; }
+        .paste-area-wrap { position: relative; flex: 1; min-width: 220px; }
+        .paste-area-wrap textarea {
+            width: 100%; height: 82px; padding: 10px 34px 10px 12px;
+            border-radius: 14px; border: 2px dashed #8e44ad;
+            font-family: 'Handlee', cursive; font-size: 0.92rem;
+            resize: vertical; background: rgba(255,255,255,0.88);
+            outline: none; transition: border 0.2s;
+        }
+        .paste-area-wrap textarea:focus { border-color: #5b2c8d; background: white; }
+        .paste-clear-btn {
+            position: absolute; top: 6px; right: 6px;
+            background: #ddd; color: #555; border: none; border-radius: 50%;
+            width: 22px; height: 22px; padding: 0; font-size: 0.7rem;
+            cursor: pointer; line-height: 22px; text-align: center; display: none;
         }
 
-        .disclaimer-bar { background: #fff9c4; padding: 10px 20px; font-size: 0.9rem; margin: 10px 0; border-radius: 5px; max-width: 600px; text-align: center; border: 1px solid #f1c40f; }
+        .disclaimer-bar {
+            background: rgba(255,249,196,0.92); padding: 8px 18px; font-size: 0.85rem;
+            margin: 6px 0 10px; border-radius: 6px; max-width: 820px; width: 82%;
+            text-align: center; border: 1px solid #f1c40f;
+        }
 
-        .app-container { width: 80%; max-width: 800px; margin-top: 20px; background: rgba(255,255,255,0.75); backdrop-filter: blur(6px); padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        /* ── App container ── */
+        .app-container {
+            width: 82%; max-width: 820px; margin-top: 10px;
+            background: rgba(255,255,255,0.78); backdrop-filter: blur(6px);
+            padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
 
-        .btn { padding: 10px 22px; margin: 5px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Handlee'; transition: all 0.3s ease; }
+        .btn {
+            padding: 9px 20px; margin: 4px; border: none; border-radius: 8px;
+            cursor: pointer; font-weight: bold; font-family: 'Handlee';
+            font-size: 0.9rem; transition: all 0.2s ease;
+        }
+        .btn:hover { opacity: 0.88; transform: translateY(-1px); }
         #uiLangBtn { background: #1a73e8; color: white; border-radius: 10px; }
-        
-        #output-container { 
-            text-align: left; background: #ffffff; padding: 25px; border-radius: 12px; 
-            border: 1px solid #dee2e6; max-height: 450px; overflow-y: auto; margin-top: 20px;
-            line-height: 1.6; color: #2c3e50; white-space: pre-wrap;
-        }
-        .answer-box { background: #f1f8ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db; margin-top: 15px; }
 
-        /* Translated note styles */
-        .translation-body { line-height: 1.8; color: #2c3e50; }
-        .translation-body h3 { font-family: 'Coming Soon', cursive; color: #2980b9; border-bottom: 2px solid #d6eaf8; padding-bottom: 4px; margin-top: 20px; }
+        /* ── Setup section ── */
+        #setup-section { text-align: center; }
+        .setup-row {
+            display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 12px; margin-bottom: 12px; align-items: flex-end;
+        }
+        .setup-row label { font-weight: bold; font-size: 0.78rem; display: block; margin-bottom: 3px; }
+        .setup-row select {
+            padding: 7px 10px; border-radius: 6px; border: 1px solid #ccc;
+            font-family: 'Handlee'; font-size: 0.9rem;
+        }
+        .action-row { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
+
+        /* ── Output ── */
+        #output-container {
+            text-align: left; background: #ffffff; padding: 22px; border-radius: 12px;
+            border: 1px solid #dee2e6; max-height: 460px; overflow-y: auto; margin-top: 18px;
+            line-height: 1.7; color: #2c3e50;
+        }
+
+        /* Answer toggle */
+        .answer-toggle-bar {
+            display: flex; align-items: center; gap: 10px;
+            background: #fff8e1; border: 1px solid #f1c40f; border-radius: 10px;
+            padding: 8px 14px; margin-top: 14px; cursor: pointer; user-select: none;
+            font-size: 0.9rem; font-weight: bold; color: #7d6608; width: fit-content;
+        }
+        .answer-toggle-bar:hover { background: #fff3cd; }
+        #answer-reveal { display: none; margin-top: 10px; }
+
+        .answer-box {
+            background: #f1f8ff; padding: 15px; border-radius: 8px;
+            border-left: 4px solid #3498db; margin-top: 12px;
+        }
+
+        /* Translation & summary body */
+        .translation-body { line-height: 1.85; color: #2c3e50; }
+        .translation-body h3 {
+            font-family: 'Coming Soon', cursive; color: #2980b9;
+            border-bottom: 2px solid #d6eaf8; padding-bottom: 4px; margin-top: 20px;
+        }
         .translation-body h4 { color: #1a5276; margin-top: 14px; margin-bottom: 4px; }
         .translation-body p  { margin: 8px 0; }
         .translation-body ul, .translation-body ol { padding-left: 22px; margin: 8px 0; }
         .translation-body li { margin-bottom: 5px; }
         .translation-body strong { color: #1a5276; }
 
-        /* Summary-specific */
         .summary-body .key-box {
             background: linear-gradient(135deg, #f3e6ff, #e8d5ff);
             border-left: 4px solid #8e44ad; border-radius: 10px;
@@ -107,22 +180,24 @@
         .summary-body .key-box ul { margin: 0; padding-left: 18px; }
         .summary-body .key-box li { color: #4a235a; margin-bottom: 5px; }
 
-        .footer-credit-bar { width: 100%; padding: 20px 0; text-align: center; margin-top: auto; font-weight: bold; background: rgba(255,255,255,0.75); backdrop-filter: blur(6px); border-top: 1px solid rgba(0,0,0,0.08); }
+        /* ── Games ── */
+        #games-wrapper { display: flex; gap: 16px; margin-top: 24px; flex-wrap: wrap; }
+        .game-panel { flex: 1; min-width: 255px; padding: 18px; border-radius: 15px; text-align: center; }
+        #game-section  { background: rgba(255,252,240,0.92); border: 1px solid #f1c40f; }
+        #flash-section { background: rgba(240,244,255,0.92); border: 1px solid #7b9ef0; }
 
-        #games-wrapper { display: flex; gap: 16px; margin-top: 30px; flex-wrap: wrap; }
-        .game-panel { flex: 1; min-width: 260px; padding: 18px; border-radius: 15px; text-align: center; }
-        #game-section  { background: #fffcf0; border: 1px solid #f1c40f; }
-        #flash-section { background: #f0f4ff; border: 1px solid #7b9ef0; }
-        .play-game-btn { background: #e67e22; color: white; width: 100%; opacity: 0.4; }
-        .play-game-btn.enabled { opacity: 1; cursor: pointer; }
-        .flash-start-btn { background: #5b6ef5; color: white; width: 100%; opacity: 0.4; }
-        .flash-start-btn.enabled { opacity: 1; cursor: pointer; }
+        .play-game-btn  { background: #e67e22; color: white; width: 100%; opacity: 0.4; pointer-events: none; }
+        .play-game-btn.enabled  { opacity: 1; pointer-events: auto; cursor: pointer; }
+        .flash-start-btn { background: #5b6ef5; color: white; width: 100%; opacity: 0.4; pointer-events: none; }
+        .flash-start-btn.enabled { opacity: 1; pointer-events: auto; cursor: pointer; }
+
         #timer-bar-wrap { background: #dde; border-radius: 8px; height: 10px; margin: 8px 0; overflow: hidden; }
-        #timer-bar { height: 100%; border-radius: 8px; transition: width 1s linear, background 1s; background: #5b6ef5; width: 100%; }
+        #timer-bar { height: 100%; border-radius: 8px; background: #5b6ef5; width: 100%; transition: width 1s linear, background 1s; }
+
         .choice-btn {
             display: block; width: 100%; margin: 5px 0; padding: 9px 12px;
             border: 2px solid #c0c8f8; border-radius: 10px; background: white;
-            cursor: pointer; font-family: 'Handlee', cursive; font-size: 0.95rem;
+            cursor: pointer; font-family: 'Handlee', cursive; font-size: 0.92rem;
             transition: background 0.2s, border 0.2s; text-align: left;
         }
         .choice-btn:hover:not(:disabled) { background: #eef0ff; border-color: #5b6ef5; }
@@ -130,37 +205,46 @@
         .choice-btn.wrong   { background: #f8d7da; border-color: #dc3545; }
         .choice-btn:disabled { cursor: default; }
 
+        /* ── Footer ── */
+        .footer-credit-bar {
+            width: 100%; padding: 18px 0; text-align: center; margin-top: auto;
+            font-weight: bold; background: rgba(255,255,255,0.78);
+            backdrop-filter: blur(6px); border-top: 1px solid rgba(0,0,0,0.08);
+        }
+
         @media (max-width: 1000px) {
-            .instruction-box { position: static; width: 90%; margin-bottom: 20px; }
+            .instruction-box { position: static; width: 90%; margin-bottom: 16px; }
             .lang-node { top: 10px; right: 10px; }
+            .input-row, .disclaimer-bar, .app-container { width: 94%; }
         }
     </style>
 </head>
 <body>
 
-<!-- Warning banner: shown when user is NOT signed into Puter -->
+<!-- Warning banner: shown when NOT signed into Puter -->
 <div id="puter-banner">
     <span>⚠️ This app uses <strong>free AI via Puter</strong>. Please sign in to Puter.com so the AI features work.</span>
     <a href="https://puter.com" target="_blank" onclick="handlePuterSignIn()">Sign in to Puter (Free)</a>
-    <button onclick="checkPuterLogin()" style="background:none; border:1px solid #999; border-radius:6px; padding:5px 10px; cursor:pointer; font-family:'Handlee';">✅ I've signed in</button>
+    <button onclick="checkPuterLogin()" style="background:none;border:1px solid #999;border-radius:6px;padding:5px 10px;cursor:pointer;font-family:'Handlee';">✅ I've signed in</button>
 </div>
 
-<!-- Green bar: shown briefly when user IS signed in -->
+<!-- Green bar: shown briefly when signed in -->
 <div id="banner-status"></div>
 
 <div class="main-content">
+
     <div class="lang-node">
-        <button id="uiLangBtn" onclick="toggleUILanguage()">Bahasa Malaysia</button>
+        <button id="uiLangBtn" class="btn" onclick="toggleUILanguage()">Bahasa Malaysia</button>
     </div>
 
     <div class="instruction-box">
         <h2 id="inst-title">Quick Guide</h2>
-        <ul id="inst-list" style="list-style: none; padding: 0;">
-            <li>• 1. Upload: Select PDF/photo.</li>
-            <li>• 2. Setup: Choose type, amount, & mode.</li>
-            <li>• 3. Student Mode: Hides answers.</li>
-            <li>• 4. Teacher Mode: Shows answers.</li>
-            <li>• 5. Translate: Rewrite to BM.</li>
+        <ul>
+            <li>• 1. Upload a file <em>or</em> paste text.</li>
+            <li>• 2. Choose question type &amp; amount.</li>
+            <li>• 3. Generate, Translate, or Summarize.</li>
+            <li>• 4. Toggle 👁 to reveal answers.</li>
+            <li>• 5. Play minigames to test yourself!</li>
         </ul>
     </div>
 
@@ -169,9 +253,17 @@
         <h1 id="main-title">Learnify</h1>
     </div>
 
-    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-        <span id="file-label">Upload PDF or image</span>
-        <input type="file" id="fileInput" accept=".pdf,image/*" style="display:none" onchange="handleFileSelect()">
+    <!-- Input: file upload OR paste -->
+    <div class="input-row">
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <span id="file-label">📁 Upload PDF or image</span>
+            <input type="file" id="fileInput" accept=".pdf,image/*" style="display:none" onchange="handleFileSelect()">
+        </div>
+        <div class="or-divider">or</div>
+        <div class="paste-area-wrap">
+            <textarea id="paste-input" placeholder="📝 Paste or type your text here..." oninput="handlePasteInput()"></textarea>
+            <button class="paste-clear-btn" onclick="clearPaste()" title="Clear">✕</button>
+        </div>
     </div>
 
     <div id="disclaimer-text" class="disclaimer-bar">
@@ -179,607 +271,633 @@
     </div>
 
     <div class="app-container">
-        <div id="setup-section" style="display:none; text-align:center;">
-            <div style="margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+
+        <!-- Setup: hidden until text is ready -->
+        <div id="setup-section" style="display:none;">
+            <div class="setup-row">
                 <div>
-                    <label id="lbl-type" style="font-weight:bold; font-size:0.8rem; display:block;">QUESTION TYPE:</label>
-                    <select id="qType" style="padding:8px; border-radius:5px; border:1px solid #ccc;">
+                    <label id="lbl-type">QUESTION TYPE:</label>
+                    <select id="qType">
                         <option value="Objective Only (Traditional & Complex Mix)">Objective Only</option>
                         <option value="Subjective Only (Short Answer)">Subjective Only</option>
                     </select>
                 </div>
                 <div>
-                    <label id="lbl-count" style="font-weight:bold; font-size:0.8rem; display:block;">AMOUNT:</label>
-                    <select id="qCount" style="padding:8px; border-radius:5px; border:1px solid #ccc;">
+                    <label id="lbl-count">AMOUNT:</label>
+                    <select id="qCount">
                         <option value="5">5 Questions</option>
                         <option value="10">10 Questions</option>
                         <option value="20">20 Questions</option>
                     </select>
                 </div>
-                <div>
-                    <label id="lbl-mode" style="font-weight:bold; font-size:0.8rem; display:block;">DISPLAY MODE:</label>
-                    <select id="displayMode" style="padding:8px; border-radius:5px; border:1px solid #ccc;">
-                        <option value="student">🎒 Student (Hide Ans)</option>
-                        <option value="teacher">🧑‍🏫 Teacher (Show Ans)</option>
-                    </select>
-                </div>
             </div>
-            
-            <div style="display: flex; justify-content: center; gap: 5px; flex-wrap: wrap;">
-                <button id="btn-generate" class="btn" style="background:#3498db; color:white;" onclick="runAI()">✨ Generate Questions</button>
-                <button id="btn-translate" class="btn" style="background:#e74c3c; color:white;" onclick="translateToBM()">🌐 Translate to BM</button>
-                <button id="btn-summarize" class="btn" style="background:#8e44ad; color:white;" onclick="summarizeDoc()">📋 Summarize</button>
-                <button id="btn-translate-summary" class="btn" style="background:#c0392b; color:white; display:none;" onclick="translateSummary()">🌐 Translate Summary</button>
-                <button id="btn-regen" class="btn" style="background:#f39c12; color:white; display:none;" onclick="handleRegen()">🔄 Regenerate</button>
+            <div class="action-row">
+                <button id="btn-generate"         class="btn" style="background:#3498db;color:white;" onclick="runAI()">✨ Generate Questions</button>
+                <button id="btn-translate"         class="btn" style="background:#e74c3c;color:white;" onclick="translateToBM()">🌐 Translate to BM</button>
+                <button id="btn-summarize"         class="btn" style="background:#8e44ad;color:white;" onclick="summarizeDoc()">📋 Summarize</button>
+                <button id="btn-translate-summary" class="btn" style="background:#c0392b;color:white;display:none;" onclick="translateSummary()">🌐 Translate Summary</button>
+                <button id="btn-regen"             class="btn" style="background:#f39c12;color:white;display:none;" onclick="handleRegen()">🔄 Regenerate</button>
             </div>
         </div>
 
-        <div id="output-container">Waiting for document upload...</div>
+        <div id="output-container">Waiting for document upload or pasted text...</div>
 
+        <!-- Games -->
         <div id="games-wrapper">
 
-            <!-- ── Terminology Scramble ── -->
+            <!-- Terminology Scramble -->
             <div id="game-section" class="game-panel">
-                <div style="font-weight:bold; color:#d35400; margin-bottom:10px;">🧩 Terminology Scramble | Streak: <span id="streak-count">0</span></div>
+                <div style="font-weight:bold;color:#d35400;margin-bottom:10px;">🧩 Terminology Scramble | Streak: <span id="streak-count">0</span></div>
                 <button id="start-game-btn" class="btn play-game-btn" onclick="toggleGame()">Start Word Scramble</button>
-                <div id="game-content" style="display:none; margin-top:15px;">
-                    <div id="scrambled-display" style="font-size:1.8rem; font-weight:bold; color:#e74c3c; letter-spacing:4px; margin:10px 0;"></div>
-                    <div id="hint-text" style="font-size:0.9rem; color:#7f8c8d; font-style:italic; margin-bottom:10px; min-height:1.2rem;"></div>
-                    <input type="text" id="game-input" style="padding:10px; width:70%; border-radius:5px; border:1px solid #ccc; margin-bottom:10px;" placeholder="Type answer...">
+                <div id="game-content" style="display:none;margin-top:14px;">
+                    <div id="scrambled-display" style="font-size:1.8rem;font-weight:bold;color:#e74c3c;letter-spacing:4px;margin:10px 0;"></div>
+                    <div id="hint-text"         style="font-size:0.85rem;color:#7f8c8d;font-style:italic;margin-bottom:8px;min-height:1.1rem;"></div>
+                    <input type="text" id="game-input" style="padding:9px;width:70%;border-radius:6px;border:1px solid #ccc;margin-bottom:8px;font-family:'Handlee';" placeholder="Type answer...">
                     <div>
-                        <button class="btn" style="background:#e67e22; color:white;" onclick="checkScramble()">Submit</button>
-                        <button class="btn" style="background:#9b59b6; color:white; font-size:0.8rem;" onclick="showHint()">Hint</button>
-                        <button class="btn" style="background:#95a5a6; color:white; font-size:0.8rem;" onclick="giveUp()">Give Up</button>
+                        <button class="btn" style="background:#e67e22;color:white;" onclick="checkScramble()">Submit</button>
+                        <button class="btn" style="background:#9b59b6;color:white;font-size:0.8rem;" onclick="showHint()">Hint</button>
+                        <button class="btn" style="background:#95a5a6;color:white;font-size:0.8rem;" onclick="giveUp()">Give Up</button>
                     </div>
-                    <p id="game-feedback" style="font-weight:bold; margin-top:10px; min-height:20px;"></p>
+                    <p id="game-feedback" style="font-weight:bold;margin-top:10px;min-height:20px;"></p>
                 </div>
             </div>
 
-            <!-- ── Flash Quiz ── -->
+            <!-- Flash Quiz -->
             <div id="flash-section" class="game-panel">
-                <div style="font-weight:bold; color:#3a4dbf; margin-bottom:6px;">⚡ Flash Quiz | Streak: <span id="flash-streak">0</span></div>
-
-                <!-- Difficulty picker (lobby) -->
+                <div style="font-weight:bold;color:#3a4dbf;margin-bottom:6px;">⚡ Flash Quiz | Streak: <span id="flash-streak">0</span></div>
                 <div id="flash-lobby">
-                    <div style="margin-bottom:10px; font-size:0.85rem; color:#555;">Choose difficulty:</div>
-                    <div style="display:flex; gap:6px; justify-content:center; margin-bottom:12px;">
+                    <div style="margin-bottom:8px;font-size:0.85rem;color:#555;">Choose difficulty:</div>
+                    <div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px;">
                         <button class="btn" id="diff-easy"   onclick="setDiff('easy')"   style="background:#27ae60;color:white;font-size:0.8rem;">🟢 Easy<br><small>15s</small></button>
                         <button class="btn" id="diff-medium" onclick="setDiff('medium')" style="background:#f39c12;color:white;font-size:0.8rem;">🟡 Medium<br><small>10s</small></button>
                         <button class="btn" id="diff-hard"   onclick="setDiff('hard')"   style="background:#e74c3c;color:white;font-size:0.8rem;">🔴 Hard<br><small>5s</small></button>
                     </div>
-                    <div id="flash-diff-label" style="font-size:0.8rem; color:#888; margin-bottom:8px;">Selected: Easy (15s)</div>
+                    <div id="flash-diff-label" style="font-size:0.8rem;color:#888;margin-bottom:8px;">Selected: Easy (15s)</div>
                     <button id="flash-start-btn" class="btn flash-start-btn" onclick="toggleFlash()">Start Flash Quiz</button>
                 </div>
-
-                <!-- Active game -->
-                <div id="flash-game" style="display:none; margin-top:10px;">
+                <div id="flash-game" style="display:none;margin-top:10px;">
                     <div id="timer-bar-wrap"><div id="timer-bar"></div></div>
-                    <div id="flash-timer-label" style="font-size:0.8rem; color:#5b6ef5; margin-bottom:6px; font-weight:bold;"></div>
-                    <div id="flash-question" style="font-size:0.95rem; font-weight:bold; color:#2c3e50; margin:10px 0; min-height:48px;"></div>
+                    <div id="flash-timer-label" style="font-size:0.8rem;color:#5b6ef5;margin-bottom:6px;font-weight:bold;"></div>
+                    <div id="flash-question"    style="font-size:0.93rem;font-weight:bold;color:#2c3e50;margin:10px 0;min-height:48px;"></div>
                     <div id="flash-choices"></div>
-                    <p id="flash-feedback" style="font-weight:bold; margin-top:8px; min-height:20px; font-size:0.9rem;"></p>
-                    <button class="btn" onclick="toggleFlash()" style="background:#95a5a6; color:white; font-size:0.75rem; margin-top:4px;">Stop</button>
+                    <p   id="flash-feedback"    style="font-weight:bold;margin-top:8px;min-height:20px;font-size:0.9rem;"></p>
+                    <button class="btn" onclick="toggleFlash()" style="background:#95a5a6;color:white;font-size:0.75rem;margin-top:4px;">Stop</button>
                 </div>
             </div>
 
-        </div>
-    </div>
-</div>
+        </div><!-- /games-wrapper -->
+    </div><!-- /app-container -->
+</div><!-- /main-content -->
 
 <div class="footer-credit-bar">
     Neo Dominion (Computer System Operation, Sarawak Skills 2026)
 </div>
 
 <script>
-    const pdfjsLib = window['pdfjs-dist/build/pdf'];
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+// ── PDF.js setup ──────────────────────────────────────────────────
+const pdfjsLib = window['pdfjs-dist/build/pdf'];
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    let currentUILang = 'en';
-    let lastExtractedText = "";
-    let lastAction = 'generate'; 
-    let winStreak = 0;
-    let currentWord = "";
-    let gameActive = false;
+// ── State ─────────────────────────────────────────────────────────
+let currentUILang  = 'en';
+let lastExtractedText = '';
+let lastAction     = 'generate';
+let lastSummaryHTML = '';
+let answersVisible = false;
 
-    // ── Puter login check ─────────────────────────────────────────
-    async function checkPuterLogin() {
-        try {
-            const user = await puter.auth.getUser();
-            if (user && user.username) {
-                // Signed in — hide warning, show green bar briefly
-                document.getElementById('puter-banner').classList.remove('visible');
-                const statusBar = document.getElementById('banner-status');
-                statusBar.innerText = `✅ Signed in to Puter as @${user.username} — Gemini AI is ready!`;
-                statusBar.classList.add('visible');
-                setTimeout(() => statusBar.classList.remove('visible'), 5000);
-                // Push content down while banner is showing
-                document.querySelector('.main-content').style.paddingTop = '70px';
-                setTimeout(() => document.querySelector('.main-content').style.paddingTop = '40px', 5000);
-            } else {
-                showLoginBanner();
-            }
-        } catch (e) {
+// Scramble
+let winStreak  = 0;
+let currentWord = '';
+let gameActive  = false;
+
+// Flash Quiz
+const DIFF_TIMES = { easy: 15, medium: 10, hard: 5 };
+let flashDiff    = 'easy';
+let flashActive  = false;
+let flashStreak  = 0;
+let flashTimer   = null;
+let flashTimeLeft = 15;
+let flashQBank   = [];
+
+// ── Puter login ───────────────────────────────────────────────────
+async function checkPuterLogin() {
+    try {
+        const user = await puter.auth.getUser();
+        if (user && user.username) {
+            document.getElementById('puter-banner').classList.remove('visible');
+            const bar = document.getElementById('banner-status');
+            bar.innerText = `✅ Signed in to Puter as @${user.username} — Gemini AI is ready!`;
+            bar.classList.add('visible');
+            document.querySelector('.main-content').style.paddingTop = '70px';
+            setTimeout(() => {
+                bar.classList.remove('visible');
+                document.querySelector('.main-content').style.paddingTop = '40px';
+            }, 5000);
+        } else {
             showLoginBanner();
         }
+    } catch (e) {
+        showLoginBanner();
     }
+}
 
-    function showLoginBanner() {
-        document.getElementById('puter-banner').classList.add('visible');
-        document.getElementById('banner-status').classList.remove('visible');
-        document.querySelector('.main-content').style.paddingTop = '90px';
+function showLoginBanner() {
+    document.getElementById('puter-banner').classList.add('visible');
+    document.getElementById('banner-status').classList.remove('visible');
+    document.querySelector('.main-content').style.paddingTop = '90px';
+}
+
+function handlePuterSignIn() { setTimeout(checkPuterLogin, 5000); }
+
+window.addEventListener('load', () => setTimeout(checkPuterLogin, 1500));
+
+// ── i18n ──────────────────────────────────────────────────────────
+const uiText = {
+    en: {
+        title: 'Learnify', upload: '📁 Upload PDF or image',
+        generate: '✨ Generate Questions', translate: '🌐 Translate to BM',
+        summarize: '📋 Summarize', translateSummary: '🌐 Translate Summary',
+        processing: '✨ Analysing and Formatting...',
+        type: 'QUESTION TYPE:', count: 'AMOUNT:',
+        disclaimer: 'Disclaimer: AI may occasionally provide incorrect information. Please cross-reference with your original source.'
+    },
+    ms: {
+        title: 'Learnify', upload: '📁 Muat Naik PDF atau Imej',
+        generate: '✨ Jana Soalan', translate: '🌐 Terjemah ke BM',
+        summarize: '📋 Ringkaskan', translateSummary: '🌐 Terjemah Ringkasan',
+        processing: '✨ Menganalisis dan Menyusun...',
+        type: 'JENIS SOALAN:', count: 'JUMLAH:',
+        disclaimer: 'Penafian: AI mungkin memberikan maklumat yang salah. Sila rujuk semula sumber asal anda.'
     }
+};
 
-    // When user clicks "Sign in to Puter", recheck after a few seconds
-    function handlePuterSignIn() {
-        setTimeout(checkPuterLogin, 5000);
-    }
+function toggleUILanguage() {
+    currentUILang = currentUILang === 'en' ? 'ms' : 'en';
+    const t = uiText[currentUILang];
+    document.getElementById('main-title').innerText           = t.title;
+    document.getElementById('file-label').innerText           = t.upload;
+    document.getElementById('btn-generate').innerText         = t.generate;
+    document.getElementById('btn-translate').innerText        = t.translate;
+    document.getElementById('btn-summarize').innerText        = t.summarize;
+    document.getElementById('btn-translate-summary').innerText = t.translateSummary;
+    document.getElementById('lbl-type').innerText             = t.type;
+    document.getElementById('lbl-count').innerText            = t.count;
+    document.getElementById('disclaimer-text').innerText      = t.disclaimer;
+    document.getElementById('uiLangBtn').innerText            = currentUILang === 'en' ? 'Bahasa Malaysia' : 'English';
+}
 
-    // Run on page load (give Puter.js 1.5s to initialise)
-    window.addEventListener('load', () => setTimeout(checkPuterLogin, 1500));
-    // ─────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────
+function activateApp() {
+    document.getElementById('setup-section').style.display = 'block';
+    document.getElementById('start-game-btn').classList.add('enabled');
+    document.getElementById('flash-start-btn').classList.add('enabled');
+    flashQBank = [];
+}
 
-    const uiText = {
-        en: { 
-            title: "Learnify", upload: "Upload PDF or image", initial: "Upload a file to begin...",
-            generate: "✨ Generate Questions", translate: "🌐 Translate to BM", summarize: "📋 Summarize", translateSummary: "🌐 Translate Summary",
-            processing: "✨ Analyzing and Formatting...", type: "QUESTION TYPE:", count: "AMOUNT:", mode: "DISPLAY MODE:",
-            disclaimer: "Disclaimer: AI may occasionally provide incorrect information. Please cross-reference with your original source."
-        },
-        ms: { 
-            title: "Learnify", upload: "Muat Naik PDF atau Imej", initial: "Muat naik fail untuk bermula...",
-            generate: "✨ Jana Soalan", translate: "🌐 Terjemah ke BM", summarize: "📋 Ringkaskan", translateSummary: "🌐 Terjemah Ringkasan",
-            processing: "✨ Menganalisis dan Menyusun...", type: "JENIS SOALAN:", count: "JUMLAH:", mode: "MOD PAPARAN:",
-            disclaimer: "Penafian: AI mungkin memberikan maklumat yang salah. Sila rujuk semula sumber asal anda."
-        }
-    };
+function authError(msg) {
+    return (msg || '').toLowerCase().match(/auth|login|sign/);
+}
 
-    function toggleUILanguage() {
-        currentUILang = currentUILang === 'en' ? 'ms' : 'en';
-        const t = uiText[currentUILang];
-        document.getElementById('main-title').innerText = t.title;
-        document.getElementById('file-label').innerText = t.upload;
-        document.getElementById('btn-generate').innerText = t.generate;
-        document.getElementById('btn-translate').innerText = t.translate;
-        document.getElementById('lbl-type').innerText = t.type;
-        document.getElementById('lbl-count').innerText = t.count;
-        document.getElementById('lbl-mode').innerText = t.mode;
-        document.getElementById('disclaimer-text').innerText = t.disclaimer;
-        document.getElementById('uiLangBtn').innerText = currentUILang === 'en' ? "Bahasa Malaysia" : "English";
-    }
+// ── File upload ───────────────────────────────────────────────────
+async function handleFileSelect() {
+    const file = document.getElementById('fileInput').files[0];
+    if (!file) return;
+    document.getElementById('file-label').innerText = '📄 ' + file.name;
+    // Clear paste box so there is no ambiguity
+    document.getElementById('paste-input').value = '';
+    document.querySelector('.paste-clear-btn').style.display = 'none';
 
-    async function handleFileSelect() {
-        const file = document.getElementById('fileInput').files[0];
-        if (!file) return;
-        document.getElementById('file-label').innerText = "📄 " + file.name;
-        document.getElementById('setup-section').style.display = "block";
-        document.getElementById('start-game-btn').classList.add('enabled');
-        document.getElementById('flash-start-btn').classList.add('enabled');
-        flashQBank = []; // reset Q bank for new document
-        const out = document.getElementById('output-container');
-        out.innerHTML = "Reading file...";
+    activateApp();
+    const out = document.getElementById('output-container');
+    out.innerHTML = 'Reading file...';
 
-        try {
-            if (file.type === "application/pdf") {
-                const pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
-                let text = "";
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    text += (await page.getTextContent()).items.map(item => item.str).join(' ') + " ";
-                }
-                lastExtractedText = text;
-            } else {
-                lastExtractedText = await puter.ai.img2txt(file);
+    try {
+        if (file.type === 'application/pdf') {
+            const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+            let text = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                text += (await page.getTextContent()).items.map(it => it.str).join(' ') + ' ';
             }
-            out.innerHTML = "✅ Ready! Adjust settings and click Generate.";
-        } catch (e) {
-            console.error(e);
-            const msg = (e.message || "").toLowerCase();
-            if (msg.includes('auth') || msg.includes('login') || msg.includes('sign')) {
-                out.innerHTML = "❌ Please sign in to Puter first using the banner at the top, then try again.";
-                showLoginBanner();
-            } else {
-                out.innerHTML = "❌ Error reading file. Please try again.";
-            }
+            lastExtractedText = text;
+        } else {
+            out.innerHTML = '🔍 Reading image text...';
+            lastExtractedText = await puter.ai.img2txt(file);
+        }
+        out.innerHTML = '✅ Ready! Adjust settings and click an action above.';
+    } catch (e) {
+        console.error(e);
+        if (authError(e.message)) {
+            out.innerHTML = '❌ Please sign in to Puter first (see the banner at the top).';
+            showLoginBanner();
+        } else {
+            out.innerHTML = '❌ Error reading file. Please try again.';
         }
     }
+}
 
-    async function runAI() {
-        lastAction = 'generate';
-        document.getElementById('btn-translate-summary').style.display = 'none';
-        const out = document.getElementById('output-container');
-        const qType = document.getElementById('qType').value;
-        const qCount = document.getElementById('qCount').value;
-        const mode = document.getElementById('displayMode').value;
-        out.innerHTML = `<span style="color:#3498db; font-weight:bold;">${uiText[currentUILang].processing}</span>`;
+// ── Paste input ───────────────────────────────────────────────────
+function handlePasteInput() {
+    const ta  = document.getElementById('paste-input');
+    const text = ta.value.trim();
+    const clr  = document.querySelector('.paste-clear-btn');
+    clr.style.display = text ? 'block' : 'none';
 
-        const prompt = `
-            You are a professional academic examiner. Based on this text: "${lastExtractedText.substring(0, 7500)}"
-            Generate ${qCount} questions. Type: ${qType}.
-            Format: Mix traditional and complex (I,II,III) styles.
-            End with "---ANSWERS-START---" followed by the answer key.
-            Language: ${currentUILang === 'en' ? 'English' : 'Bahasa Malaysia'}.
+    if (text.length > 20) {
+        lastExtractedText = text;
+        // Clear file selection label to avoid confusion
+        document.getElementById('file-label').innerText = '📁 Upload PDF or image';
+        activateApp();
+        document.getElementById('output-container').innerHTML =
+            `✅ Text ready (${text.length} characters). Choose an action above.`;
+    }
+}
+
+function clearPaste() {
+    document.getElementById('paste-input').value = '';
+    document.querySelector('.paste-clear-btn').style.display = 'none';
+    lastExtractedText = '';
+    document.getElementById('setup-section').style.display = 'none';
+    document.getElementById('output-container').innerHTML = 'Waiting for document upload or pasted text...';
+}
+
+// ── Answer toggle ─────────────────────────────────────────────────
+function toggleAnswers() {
+    answersVisible = !answersVisible;
+    const reveal = document.getElementById('answer-reveal');
+    const icon   = document.getElementById('toggle-icon');
+    const label  = document.getElementById('toggle-label');
+    if (!reveal) return;
+    reveal.style.display = answersVisible ? 'block' : 'none';
+    icon.innerText  = answersVisible ? '🙈' : '👁';
+    label.innerText = answersVisible ? 'Hide Answers' : 'Show Answers';
+}
+
+// ── Generate Questions ────────────────────────────────────────────
+async function runAI() {
+    if (!lastExtractedText) { alert('Please upload a file or paste some text first.'); return; }
+    lastAction = 'generate';
+    answersVisible = false;
+    document.getElementById('btn-translate-summary').style.display = 'none';
+    document.getElementById('btn-regen').style.display = 'none';
+
+    const out    = document.getElementById('output-container');
+    const qType  = document.getElementById('qType').value;
+    const qCount = document.getElementById('qCount').value;
+    out.innerHTML = `<span style="color:#3498db;font-weight:bold;">${uiText[currentUILang].processing}</span>`;
+
+    const prompt = `You are a professional academic examiner. Based on this text:
+"${lastExtractedText.substring(0, 7500)}"
+
+Generate ${qCount} questions. Type: ${qType}.
+Mix traditional and complex (I, II, III combination) styles where appropriate.
+After all questions, write exactly "---ANSWERS-START---" on its own line, then provide the answer key.
+Language: ${currentUILang === 'en' ? 'English' : 'Bahasa Malaysia'}.`;
+
+    try {
+        const res   = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+        const parts = res.message.content.split('---ANSWERS-START---');
+        const qContent = parts[0].trim();
+        const aContent = parts[1] ? parts[1].trim() : 'Answer key unavailable.';
+
+        out.innerHTML = `
+            <h3>📝 Practice Quiz</h3>
+            <div>${qContent}</div>
+            <div class="answer-toggle-bar" onclick="toggleAnswers()">
+                <span id="toggle-icon">👁</span>
+                <span id="toggle-label">Show Answers</span>
+            </div>
+            <div id="answer-reveal" class="answer-box">${aContent}</div>
         `;
-
-        try {
-            const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
-            const parts = res.message.content.split("---ANSWERS-START---");
-            const qContent = parts[0].trim();
-            const aContent = parts[1] ? parts[1].trim() : "Key unavailable.";
-
-            if (mode === 'student') {
-                out.innerHTML = `<h3>📝 Practice Quiz</h3><div>${qContent}</div>
-                                 <details class="answer-box"><summary>Click to reveal answers</summary><div>${aContent}</div></details>`;
-            } else {
-                out.innerHTML = `<h3>🧑‍🏫 Teacher Material</h3><div>${qContent}</div><div class="answer-box"><strong>Answer Key:</strong><br>${aContent}</div>`;
-            }
-            document.getElementById('btn-regen').style.display = "inline-block";
-        } catch (e) {
-            console.error(e);
-            const msg = (e.message || "").toLowerCase();
-            if (msg.includes('auth') || msg.includes('login') || msg.includes('sign')) {
-                out.innerHTML = "❌ Please sign in to Puter first using the banner at the top, then try again.";
-                showLoginBanner();
-            } else {
-                out.innerHTML = "❌ AI Error. Please try again.";
-            }
-        }
+        document.getElementById('btn-regen').style.display = 'inline-block';
+    } catch (e) {
+        console.error(e);
+        out.innerHTML = authError(e.message)
+            ? '❌ Please sign in to Puter first (see the banner at the top).'
+            : '❌ AI Error. Please try again.';
+        if (authError(e.message)) showLoginBanner();
     }
+}
 
-    async function translateToBM() {
-        if (!lastExtractedText) return;
-        lastAction = 'translate';
-        document.getElementById('btn-translate-summary').style.display = 'none';
-        const out = document.getElementById('output-container');
+// ── Translate full document ───────────────────────────────────────
+async function translateToBM() {
+    if (!lastExtractedText) { alert('Please upload a file or paste some text first.'); return; }
+    lastAction = 'translate';
+    document.getElementById('btn-translate-summary').style.display = 'none';
+    document.getElementById('btn-regen').style.display = 'none';
 
-        out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
-                         <div id="t-prog" style="color:#e74c3c; font-weight:bold;">🌐 Preparing translation...</div>`;
+    const out = document.getElementById('output-container');
+    out.innerHTML = `<h3>🌐 Terjemahan Nota</h3><div id="t-prog" style="color:#e74c3c;font-weight:bold;">🌐 Preparing translation...</div>`;
+    const prog = document.getElementById('t-prog');
 
-        const prog = document.getElementById('t-prog');
-        const chunkSize = 2000;
-        const chunks = [];
-        const cleanText = lastExtractedText.replace(/\s+/g, ' ').trim();
+    const cleanText = lastExtractedText.replace(/\s+/g, ' ').trim();
+    const chunkSize = 2000;
+    const chunks = [];
+    for (let i = 0; i < cleanText.length; i += chunkSize) chunks.push(cleanText.substring(i, i + chunkSize));
 
-        for (let i = 0; i < cleanText.length; i += chunkSize) {
-            chunks.push(cleanText.substring(i, i + chunkSize));
-        }
+    async function translateChunk(chunk, attempt = 1) {
+        try {
+            const p = `Translate this educational text to formal Bahasa Malaysia. Keep technical terms in square brackets e.g. [ransomware].
 
-        let fullTranslation = "";
-
-        async function translateChunk(chunk, attempt = 1) {
-            try {
-                const prompt = `Translate this educational text to formal Bahasa Malaysia. Keep technical terms in square brackets e.g. [ransomware].
-
-Format the output as clean HTML using these tags only:
+Format the output as clean HTML using ONLY these tags:
 - <h3> for main section headings
-- <h4> for sub-headings  
+- <h4> for sub-headings
 - <p> for paragraphs
-- <ul><li> for bullet point lists
+- <ul><li> for bullet lists
 - <ol><li> for numbered lists
-- <strong> for bold key terms
-Do NOT include \`\`\`html fences, DOCTYPE, <html>, <head>, or <body> tags. Return only the formatted HTML content.
+- <strong> for key terms
+Do NOT include html fences, DOCTYPE, <html>, <head>, or <body> tags. Return only the HTML content.
 
-Text to translate:\n\n${chunk}`;
-                const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
-                return res.message.content;
-            } catch (err) {
-                if (attempt < 3) {
-                    console.warn(`Retrying chunk... attempt ${attempt}`);
-                    await new Promise(r => setTimeout(r, 1500));
-                    return translateChunk(chunk, attempt + 1);
-                } else {
-                    console.error("Chunk failed after retries:", err);
-                    return "[⚠️ Translation failed for this part]";
-                }
+Text:\n\n${chunk}`;
+            const res = await puter.ai.chat(p, { model: 'google/gemini-2.0-flash' });
+            return res.message.content;
+        } catch (err) {
+            if (attempt < 3) {
+                await new Promise(r => setTimeout(r, 1500));
+                return translateChunk(chunk, attempt + 1);
             }
-        }
-
-        try {
-            for (let i = 0; i < chunks.length; i++) {
-                prog.innerText = `🌐 Translating part ${i+1} of ${chunks.length}...`;
-                const result = await translateChunk(chunks[i]);
-                fullTranslation += result + "\n\n";
-                await new Promise(r => setTimeout(r, 800));
-            }
-
-            prog.style.color = "#27ae60";
-            prog.innerText = "✅ Translation complete!";
-
-            // Strip any stray markdown fences the model may have added
-            const cleanedTranslation = fullTranslation.replace(/```html|```/g, '').trim();
-
-            out.innerHTML = `
-                <h3>🌐 Terjemahan Nota</h3>
-                <div class="translation-body">${cleanedTranslation}</div>
-            `;
-
-            document.getElementById('btn-regen').style.display = "inline-block";
-
-        } catch (e) {
-            console.error(e);
-            const msg = (e.message || "").toLowerCase();
-            if (msg.includes('auth') || msg.includes('login') || msg.includes('sign')) {
-                out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
-                                 <div style="color:red;">❌ Please sign in to Puter first using the banner at the top.</div>`;
-                showLoginBanner();
-            } else {
-                out.innerHTML = `<h3>🌐 Terjemahan Nota</h3>
-                                 <div style="color:red;">❌ Unexpected error occurred.</div>
-                                 <div style="white-space: pre-wrap;">${fullTranslation}</div>`;
-            }
+            return '[⚠️ Translation failed for this part]';
         }
     }
 
-    function handleRegen() {
-        if (lastAction === 'translate') translateToBM();
-        else if (lastAction === 'summarize') summarizeDoc();
-        else if (lastAction === 'translate-summary') translateSummary();
-        else runAI();
+    let fullTranslation = '';
+    try {
+        for (let i = 0; i < chunks.length; i++) {
+            prog.innerText = `🌐 Translating part ${i + 1} of ${chunks.length}...`;
+            fullTranslation += (await translateChunk(chunks[i])) + '\n\n';
+            await new Promise(r => setTimeout(r, 800));
+        }
+        const cleaned = fullTranslation.replace(/```html|```/g, '').trim();
+        out.innerHTML = `<h3>🌐 Terjemahan Nota</h3><div class="translation-body">${cleaned}</div>`;
+        document.getElementById('btn-regen').style.display = 'inline-block';
+    } catch (e) {
+        console.error(e);
+        out.innerHTML = authError(e.message)
+            ? `<h3>🌐 Terjemahan Nota</h3><div style="color:red;">❌ Please sign in to Puter first.</div>`
+            : `<h3>🌐 Terjemahan Nota</h3><div style="color:red;">❌ Unexpected error.</div><div>${fullTranslation}</div>`;
+        if (authError(e.message)) showLoginBanner();
     }
+}
 
-    // ── Summarize ─────────────────────────────────────────────────
-    let lastSummaryHTML = "";
+// ── Summarize ─────────────────────────────────────────────────────
+async function summarizeDoc() {
+    if (!lastExtractedText) { alert('Please upload a file or paste some text first.'); return; }
+    lastAction = 'summarize';
+    lastSummaryHTML = '';
+    document.getElementById('btn-translate-summary').style.display = 'none';
+    document.getElementById('btn-regen').style.display = 'none';
 
-    async function summarizeDoc() {
-        if (!lastExtractedText) { alert("Upload a file first!"); return; }
-        lastAction = 'summarize';
-        lastSummaryHTML = "";
-        const out = document.getElementById('output-container');
-        document.getElementById('btn-translate-summary').style.display = 'none';
-        out.innerHTML = `<span style="color:#8e44ad; font-weight:bold;">📋 Summarizing document...</span>`;
+    const out = document.getElementById('output-container');
+    out.innerHTML = `<span style="color:#8e44ad;font-weight:bold;">📋 Summarizing document...</span>`;
 
-        const prompt = `You are an expert academic summarizer. Read the following educational text and produce a well-structured summary in ${currentUILang === 'ms' ? 'formal Bahasa Malaysia' : 'English'}.
+    const lang = currentUILang === 'ms' ? 'formal Bahasa Malaysia' : 'English';
+    const prompt = `You are an expert academic summarizer. Summarize the following educational text in ${lang}.
 
-Structure the summary as clean HTML using ONLY these tags:
+Return clean HTML using ONLY these tags:
 - <h3> for main topic headings
 - <h4> for sub-topic headings
 - <p> for paragraph summaries
 - <ul><li> for key point lists
-- <strong> for important terms or keywords
-- <div class="key-box"> for a "Key Takeaways" section at the end with 3–5 bullet points
+- <strong> for important terms
+- <div class="key-box"> for a Key Takeaways section at the end with 3–5 bullet points
 
-Rules:
-- Be concise but comprehensive — capture all major concepts
-- Group related ideas under clear headings
-- Highlight key technical terms with <strong>
-- End with a <div class="key-box"> Key Takeaways section
-- Do NOT include \`\`\`html fences, DOCTYPE, <html>, <head>, or <body> tags
+Rules: be concise but comprehensive, group ideas under headings, highlight key terms, end with the key-box.
+Do NOT include html fences or any outer html/body tags.
 
-Text to summarize:
+Text:
 "${lastExtractedText.substring(0, 8000)}"`;
 
-        try {
-            const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
-            lastSummaryHTML = res.message.content.replace(/```html|```/g, '').trim();
-
-            out.innerHTML = `
-                <h3>📋 Ringkasan Dokumen / Document Summary</h3>
-                <div class="translation-body summary-body">${lastSummaryHTML}</div>
-            `;
-            document.getElementById('btn-translate-summary').style.display = 'inline-block';
-            document.getElementById('btn-regen').style.display = 'inline-block';
-        } catch (e) {
-            console.error(e);
-            const msg = (e.message || "").toLowerCase();
-            if (msg.includes('auth') || msg.includes('login') || msg.includes('sign')) {
-                out.innerHTML = "❌ Please sign in to Puter first using the banner at the top.";
-                showLoginBanner();
-            } else {
-                out.innerHTML = "❌ Summarization failed. Please try again.";
-            }
-        }
+    try {
+        const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+        lastSummaryHTML = res.message.content.replace(/```html|```/g, '').trim();
+        out.innerHTML = `
+            <h3>📋 Ringkasan Dokumen / Document Summary</h3>
+            <div class="translation-body summary-body">${lastSummaryHTML}</div>
+        `;
+        document.getElementById('btn-translate-summary').style.display = 'inline-block';
+        document.getElementById('btn-regen').style.display = 'inline-block';
+    } catch (e) {
+        console.error(e);
+        out.innerHTML = authError(e.message)
+            ? '❌ Please sign in to Puter first (see the banner at the top).'
+            : '❌ Summarization failed. Please try again.';
+        if (authError(e.message)) showLoginBanner();
     }
+}
 
-    // ── Translate Summary to BM ───────────────────────────────────
-    async function translateSummary() {
-        if (!lastSummaryHTML) { alert("Please summarize a document first!"); return; }
-        lastAction = 'translate-summary';
-        const out = document.getElementById('output-container');
-        out.innerHTML = `<span style="color:#c0392b; font-weight:bold;">🌐 Menterjemah ringkasan...</span>`;
+// ── Translate Summary ─────────────────────────────────────────────
+async function translateSummary() {
+    if (!lastSummaryHTML) { alert('Please summarize a document first!'); return; }
+    lastAction = 'translate-summary';
+    document.getElementById('btn-regen').style.display = 'none';
 
-        const prompt = `Translate the following HTML summary into formal Bahasa Malaysia. Keep all HTML tags exactly as they are. Only translate the visible text content inside the tags. Keep technical terms in square brackets e.g. [ransomware]. Do NOT add or remove any HTML tags. Do NOT include \`\`\`html fences.
+    const out = document.getElementById('output-container');
+    out.innerHTML = `<span style="color:#c0392b;font-weight:bold;">🌐 Menterjemah ringkasan...</span>`;
 
-HTML to translate:
+    const prompt = `Translate the following HTML summary into formal Bahasa Malaysia.
+Keep ALL HTML tags exactly as they are. Only translate the visible text inside the tags.
+Keep technical terms in square brackets. Do NOT add or remove HTML tags. Do NOT include html fences.
+
+HTML:
 ${lastSummaryHTML}`;
 
+    try {
+        const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+        const translated = res.message.content.replace(/```html|```/g, '').trim();
+        out.innerHTML = `
+            <h3>🌐 Ringkasan dalam Bahasa Malaysia</h3>
+            <div class="translation-body summary-body">${translated}</div>
+        `;
+        document.getElementById('btn-regen').style.display = 'inline-block';
+    } catch (e) {
+        console.error(e);
+        out.innerHTML = authError(e.message)
+            ? '❌ Please sign in to Puter first (see the banner at the top).'
+            : '❌ Translation failed. Please try again.';
+        if (authError(e.message)) showLoginBanner();
+    }
+}
+
+// ── Regenerate ────────────────────────────────────────────────────
+function handleRegen() {
+    if      (lastAction === 'translate')         translateToBM();
+    else if (lastAction === 'summarize')         summarizeDoc();
+    else if (lastAction === 'translate-summary') translateSummary();
+    else                                         runAI();
+}
+
+// ── Terminology Scramble ──────────────────────────────────────────
+function toggleGame() {
+    if (!lastExtractedText) { alert('Upload a file or paste text first!'); return; }
+    gameActive = !gameActive;
+    document.getElementById('game-content').style.display   = gameActive ? 'block' : 'none';
+    document.getElementById('start-game-btn').innerText     = gameActive ? 'Stop Game' : 'Start Word Scramble';
+    if (gameActive) refreshGame();
+}
+
+function refreshGame() {
+    document.getElementById('game-feedback').innerText = '';
+    document.getElementById('hint-text').innerText     = '';
+    const words = lastExtractedText.split(/\s+/).filter(w => w.length > 6 && /^[A-Za-z]+$/.test(w));
+    currentWord = (words.length > 0 ? words[Math.floor(Math.random() * words.length)] : 'DEVELOPMENT')
+        .toUpperCase();
+    document.getElementById('scrambled-display').innerText =
+        currentWord.split('').sort(() => Math.random() - 0.5).join('');
+    document.getElementById('game-input').value = '';
+}
+
+function checkScramble() {
+    if (document.getElementById('game-input').value.toUpperCase() === currentWord) {
+        winStreak++;
+        document.getElementById('streak-count').innerText  = winStreak;
+        document.getElementById('game-feedback').innerText = '✅ Correct!';
+        setTimeout(refreshGame, 1000);
+    } else {
+        winStreak = 0;
+        document.getElementById('streak-count').innerText  = '0';
+        document.getElementById('game-feedback').innerText = '❌ Try again!';
+    }
+}
+
+function showHint() {
+    document.getElementById('hint-text').innerText =
+        `Starts with "${currentWord[0]}" and ends with "${currentWord[currentWord.length - 1]}"`;
+}
+
+function giveUp() {
+    document.getElementById('game-feedback').innerText = `Answer: ${currentWord}`;
+    setTimeout(refreshGame, 2000);
+}
+
+// ── Flash Quiz ────────────────────────────────────────────────────
+function setDiff(d) {
+    flashDiff = d;
+    const labels = { easy: 'Easy (15s)', medium: 'Medium (10s)', hard: 'Hard (5s)' };
+    document.getElementById('flash-diff-label').innerText = 'Selected: ' + labels[d];
+    ['easy', 'medium', 'hard'].forEach(x =>
+        document.getElementById('diff-' + x).style.opacity = (x === d) ? '1' : '0.5'
+    );
+}
+setDiff('easy');
+
+function toggleFlash() {
+    if (!lastExtractedText) { alert('Upload a file or paste text first!'); return; }
+    flashActive = !flashActive;
+    if (flashActive) {
+        flashStreak = 0;
+        document.getElementById('flash-streak').innerText       = '0';
+        document.getElementById('flash-lobby').style.display    = 'none';
+        document.getElementById('flash-game').style.display     = 'block';
+        loadFlashQuestion();
+    } else {
+        stopFlash();
+    }
+}
+
+function stopFlash() {
+    flashActive = false;
+    clearInterval(flashTimer);
+    document.getElementById('flash-lobby').style.display = 'block';
+    document.getElementById('flash-game').style.display  = 'none';
+}
+
+async function loadFlashQuestion() {
+    if (!flashActive) return;
+    clearInterval(flashTimer);
+
+    document.getElementById('flash-question').innerText     = '⏳ Generating question...';
+    document.getElementById('flash-choices').innerHTML      = '';
+    document.getElementById('flash-feedback').innerText     = '';
+    document.getElementById('timer-bar').style.width        = '100%';
+    document.getElementById('timer-bar').style.background   = '#5b6ef5';
+
+    if (flashQBank.length === 0) {
         try {
-            const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
-            const translated = res.message.content.replace(/```html|```/g, '').trim();
-
-            out.innerHTML = `
-                <h3>🌐 Ringkasan dalam Bahasa Malaysia</h3>
-                <div class="translation-body summary-body">${translated}</div>
-            `;
-            document.getElementById('btn-regen').style.display = 'inline-block';
-        } catch (e) {
-            console.error(e);
-            const msg = (e.message || "").toLowerCase();
-            if (msg.includes('auth') || msg.includes('login') || msg.includes('sign')) {
-                out.innerHTML = "❌ Please sign in to Puter first using the banner at the top.";
-                showLoginBanner();
-            } else {
-                out.innerHTML = "❌ Translation failed. Please try again.";
-            }
-        }
-    }
-    // ─────────────────────────────────────────────────────────────
-
-    function toggleGame() {
-        if(!lastExtractedText) { alert("Upload a file first!"); return; }
-        gameActive = !gameActive;
-        document.getElementById('game-content').style.display = gameActive ? "block" : "none";
-        document.getElementById('start-game-btn').innerText = gameActive ? "Stop Game" : "Start Word Scramble";
-        if(gameActive) refreshGame();
-    }
-
-    function refreshGame() {
-        document.getElementById('game-feedback').innerText = "";
-        const words = lastExtractedText.split(/\s+/).filter(w => w.length > 7 && /^[A-Z]+$/i.test(w));
-        currentWord = (words.length > 0 ? words[Math.floor(Math.random()*words.length)] : "DEVELOPMENT").toUpperCase().replace(/[^A-Z]/g, '');
-        document.getElementById('scrambled-display').innerText = currentWord.split('').sort(() => Math.random() - 0.5).join('');
-        document.getElementById('game-input').value = "";
-    }
-
-    function checkScramble() {
-        if (document.getElementById('game-input').value.toUpperCase() === currentWord) {
-            winStreak++; document.getElementById('streak-count').innerText = winStreak;
-            document.getElementById('game-feedback').innerText = "✅ Correct!";
-            setTimeout(refreshGame, 1000);
-        } else {
-            winStreak = 0; document.getElementById('streak-count').innerText = "0";
-            document.getElementById('game-feedback').innerText = "❌ Try again!";
-        }
-    }
-
-    // ── Flash Quiz ────────────────────────────────────────────────
-    const DIFF_TIMES = { easy: 15, medium: 10, hard: 5 };
-    let flashDiff = 'easy';
-    let flashActive = false;
-    let flashStreak = 0;
-    let flashTimer = null;
-    let flashTimeLeft = 15;
-    let flashQBank = [];   // pre-generated Q objects
-    let flashLoading = false;
-
-    function setDiff(d) {
-        flashDiff = d;
-        const labels = { easy: 'Easy (15s)', medium: 'Medium (10s)', hard: 'Hard (5s)' };
-        document.getElementById('flash-diff-label').innerText = 'Selected: ' + labels[d];
-        ['easy','medium','hard'].forEach(x => {
-            document.getElementById('diff-'+x).style.opacity = (x === d) ? '1' : '0.5';
-        });
-    }
-    setDiff('easy'); // default highlight
-
-    function toggleFlash() {
-        if (!lastExtractedText) { alert("Upload a file first!"); return; }
-        flashActive = !flashActive;
-        if (flashActive) {
-            flashStreak = 0;
-            document.getElementById('flash-streak').innerText = '0';
-            document.getElementById('flash-lobby').style.display = 'none';
-            document.getElementById('flash-game').style.display = 'block';
-            loadFlashQuestion();
-        } else {
-            stopFlash();
-        }
-    }
-
-    function stopFlash() {
-        flashActive = false;
-        clearInterval(flashTimer);
-        document.getElementById('flash-lobby').style.display = 'block';
-        document.getElementById('flash-game').style.display = 'none';
-    }
-
-    async function loadFlashQuestion() {
-        if (!flashActive) return;
-        clearInterval(flashTimer);
-
-        document.getElementById('flash-question').innerText = '⏳ Generating question...';
-        document.getElementById('flash-choices').innerHTML = '';
-        document.getElementById('flash-feedback').innerText = '';
-        document.getElementById('timer-bar').style.width = '100%';
-        document.getElementById('timer-bar').style.background = '#5b6ef5';
-
-        // Use cached bank if available, otherwise generate a batch
-        if (flashQBank.length === 0) {
-            try {
-                const prompt = `Based on this text: "${lastExtractedText.substring(0, 5000)}"
-Generate 5 multiple-choice flash quiz questions. Each question must have exactly 3 choices (A, B, C) and one correct answer.
+            const prompt = `Based on this text: "${lastExtractedText.substring(0, 5000)}"
+Generate 5 multiple-choice flash quiz questions. Each must have exactly 3 choices (A, B, C) and one correct answer.
 Return ONLY a JSON array, no markdown, no extra text. Format:
 [{"q":"Question text","choices":["A. option","B. option","C. option"],"answer":"A"}]`;
-                const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
-                let raw = res.message.content.trim().replace(/```json|```/g, '').trim();
-                flashQBank = JSON.parse(raw);
-            } catch(e) {
-                console.error(e);
-                document.getElementById('flash-question').innerText = '❌ Could not generate question. Make sure you are signed into Puter.';
-                return;
-            }
+            const res  = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+            const raw  = res.message.content.trim().replace(/```json|```/g, '').trim();
+            flashQBank = JSON.parse(raw);
+        } catch (e) {
+            console.error(e);
+            document.getElementById('flash-question').innerText =
+                '❌ Could not generate questions. Make sure you are signed into Puter.';
+            return;
         }
+    }
 
-        // Pick a random question from the bank
-        const idx = Math.floor(Math.random() * flashQBank.length);
-        const q = flashQBank.splice(idx, 1)[0];
+    const idx = Math.floor(Math.random() * flashQBank.length);
+    const q   = flashQBank.splice(idx, 1)[0];
 
-        document.getElementById('flash-question').innerText = q.q;
+    document.getElementById('flash-question').innerText = q.q;
+    const choicesDiv = document.getElementById('flash-choices');
+    choicesDiv.innerHTML = '';
+    q.choices.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerText = c;
+        btn.onclick = () => answerFlash(btn, c, q.answer);
+        choicesDiv.appendChild(btn);
+    });
 
-        // Render choices
-        const choicesDiv = document.getElementById('flash-choices');
-        choicesDiv.innerHTML = '';
-        q.choices.forEach((c, i) => {
-            const btn = document.createElement('button');
-            btn.className = 'choice-btn';
-            btn.innerText = c;
-            btn.onclick = () => answerFlash(btn, c, q.answer, q.choices);
-            choicesDiv.appendChild(btn);
-        });
-
-        // Start countdown
-        flashTimeLeft = DIFF_TIMES[flashDiff];
+    flashTimeLeft = DIFF_TIMES[flashDiff];
+    updateTimerBar(flashTimeLeft, DIFF_TIMES[flashDiff]);
+    flashTimer = setInterval(() => {
+        flashTimeLeft--;
         updateTimerBar(flashTimeLeft, DIFF_TIMES[flashDiff]);
-        flashTimer = setInterval(() => {
-            flashTimeLeft--;
-            updateTimerBar(flashTimeLeft, DIFF_TIMES[flashDiff]);
-            if (flashTimeLeft <= 0) {
-                clearInterval(flashTimer);
-                timeOut(q.answer, q.choices);
-            }
-        }, 1000);
-    }
+        if (flashTimeLeft <= 0) { clearInterval(flashTimer); timeOut(q.answer); }
+    }, 1000);
+}
 
-    function updateTimerBar(left, total) {
-        const pct = (left / total) * 100;
-        const bar = document.getElementById('timer-bar');
-        bar.style.width = pct + '%';
-        bar.style.background = pct > 50 ? '#5b6ef5' : pct > 25 ? '#f39c12' : '#e74c3c';
-        document.getElementById('flash-timer-label').innerText = `⏱ ${left}s`;
-    }
+function updateTimerBar(left, total) {
+    const pct = (left / total) * 100;
+    const bar = document.getElementById('timer-bar');
+    bar.style.width      = pct + '%';
+    bar.style.background = pct > 50 ? '#5b6ef5' : pct > 25 ? '#f39c12' : '#e74c3c';
+    document.getElementById('flash-timer-label').innerText = `⏱ ${left}s`;
+}
 
-    function answerFlash(btn, chosen, correct, choices) {
-        clearInterval(flashTimer);
-        disableChoices();
-        const chosenLetter = chosen.charAt(0);
-        if (chosenLetter === correct) {
-            btn.classList.add('correct');
-            flashStreak++;
-            document.getElementById('flash-streak').innerText = flashStreak;
-            document.getElementById('flash-feedback').innerText = '✅ Correct!';
-            document.getElementById('flash-feedback').style.color = '#27ae60';
-        } else {
-            btn.classList.add('wrong');
-            highlightCorrect(correct);
-            flashStreak = 0;
-            document.getElementById('flash-streak').innerText = '0';
-            document.getElementById('flash-feedback').innerText = '❌ Wrong!';
-            document.getElementById('flash-feedback').style.color = '#e74c3c';
-        }
-        setTimeout(() => { if (flashActive) loadFlashQuestion(); }, 1400);
-    }
-
-    function timeOut(correct, choices) {
-        disableChoices();
+function answerFlash(btn, chosen, correct) {
+    clearInterval(flashTimer);
+    disableChoices();
+    if (chosen.charAt(0) === correct) {
+        btn.classList.add('correct');
+        flashStreak++;
+        document.getElementById('flash-streak').innerText  = flashStreak;
+        document.getElementById('flash-feedback').innerText = '✅ Correct!';
+        document.getElementById('flash-feedback').style.color = '#27ae60';
+    } else {
+        btn.classList.add('wrong');
         highlightCorrect(correct);
         flashStreak = 0;
-        document.getElementById('flash-streak').innerText = '0';
-        document.getElementById('flash-feedback').innerText = "⌛ Time's up!";
+        document.getElementById('flash-streak').innerText  = '0';
+        document.getElementById('flash-feedback').innerText = '❌ Wrong!';
         document.getElementById('flash-feedback').style.color = '#e74c3c';
-        setTimeout(() => { if (flashActive) loadFlashQuestion(); }, 1400);
     }
+    setTimeout(() => { if (flashActive) loadFlashQuestion(); }, 1400);
+}
 
-    function disableChoices() {
-        document.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
-    }
+function timeOut(correct) {
+    disableChoices();
+    highlightCorrect(correct);
+    flashStreak = 0;
+    document.getElementById('flash-streak').innerText  = '0';
+    document.getElementById('flash-feedback').innerText = "⌛ Time's up!";
+    document.getElementById('flash-feedback').style.color = '#e74c3c';
+    setTimeout(() => { if (flashActive) loadFlashQuestion(); }, 1400);
+}
 
-    function highlightCorrect(correctLetter) {
-        document.querySelectorAll('.choice-btn').forEach(b => {
-            if (b.innerText.charAt(0) === correctLetter) b.classList.add('correct');
-        });
-    }
-    // ─────────────────────────────────────────────────────────────
+function disableChoices() {
+    document.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+}
 
-    function showHint() { document.getElementById('hint-text').innerText = `Starts with "${currentWord[0]}" and ends with "${currentWord[currentWord.length - 1]}"`; }
-    function giveUp() { document.getElementById('game-feedback').innerText = `Answer: ${currentWord}`; setTimeout(refreshGame, 2000); }
+function highlightCorrect(correctLetter) {
+    document.querySelectorAll('.choice-btn').forEach(b => {
+        if (b.innerText.charAt(0) === correctLetter) b.classList.add('correct');
+    });
+}
 </script>
 </body>
 </html>

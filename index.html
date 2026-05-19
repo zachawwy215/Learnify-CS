@@ -306,6 +306,8 @@
         .quiz-export-btn.copy:hover  { background: #d6eaf8; }
         .quiz-export-btn.docx  { background: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
         .quiz-export-btn.docx:hover  { background: #d5f5e3; }
+        .quiz-export-btn.translate { background: #f5eef8; color: #7d3c98; border: 1px solid #d2b4de; }
+        .quiz-export-btn.translate:hover { background: #e8daef; }
         .quiz-export-btn:active { transform: scale(0.97); }
 
         /* ── Quiz formatting ── */
@@ -879,6 +881,53 @@ async function downloadQuizDocx() {
     }
 }
 
+async function translateQuizToBM() {
+    if (!window._quizRaw) return;
+    const btn = document.getElementById('btn-translate-quiz');
+    btn.innerText = '⏳ Translating...';
+    btn.disabled  = true;
+
+    try {
+        const prompt = `Translate the following exam questions and answer key accurately into Bahasa Malaysia. 
+Keep the same formatting — question numbers, choice letters (a, b, c, d), Roman numerals, and the separator "---ANSWERS-START---" must stay exactly as they are.
+Only translate the text content, not the structure.
+
+${window._quizRaw.questions}
+---ANSWERS-START---
+${window._quizRaw.answers}`;
+
+        const res   = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+        const parts = res.message.content.split('---ANSWERS-START---');
+        const qBM   = parts[0].trim();
+        const aBM   = parts[1] ? parts[1].trim() : window._quizRaw.answers;
+
+        // Store BM version for export too
+        window._quizRaw.questionsBM = qBM;
+        window._quizRaw.answersBM   = aBM;
+
+        document.getElementById('quiz-questions').innerHTML = formatQuiz(qBM);
+        document.getElementById('answer-reveal').innerHTML  = formatAnswers(aBM);
+
+        btn.innerHTML = '🔄 Show Original';
+        btn.disabled  = false;
+        btn.onclick   = restoreQuizOriginal;
+    } catch(e) {
+        console.error(e);
+        btn.innerHTML = '🌐 Translate to BM';
+        btn.disabled  = false;
+        alert('Translation failed. Please try again.');
+    }
+}
+
+function restoreQuizOriginal() {
+    if (!window._quizRaw) return;
+    document.getElementById('quiz-questions').innerHTML = formatQuiz(window._quizRaw.questions);
+    document.getElementById('answer-reveal').innerHTML  = formatAnswers(window._quizRaw.answers);
+    const btn     = document.getElementById('btn-translate-quiz');
+    btn.innerHTML = '🌐 Translate to BM';
+    btn.onclick   = translateQuizToBM;
+}
+
 async function runAI() {
     if (!lastExtractedText) { alert('Please upload a file or paste some text first.'); return; }
     lastAction = 'generate';
@@ -913,6 +962,7 @@ Language: ${currentUILang === 'en' ? 'English' : 'Bahasa Malaysia'}.`;
             <div class="quiz-toolbar">
                 <button class="quiz-export-btn copy" onclick="copyQuiz()">📋 Copy All</button>
                 <button class="quiz-export-btn docx" onclick="downloadQuizDocx()">📄 Download .docx</button>
+                <button class="quiz-export-btn translate" id="btn-translate-quiz" onclick="translateQuizToBM()">🌐 Translate to BM</button>
             </div>
             <div id="quiz-questions">${formatQuiz(qContent)}</div>
             <div class="answer-toggle-bar" onclick="toggleAnswers()">

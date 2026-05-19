@@ -888,20 +888,19 @@ async function translateQuizToBM() {
     btn.disabled  = true;
 
     try {
-        const prompt = `Translate the following exam questions and answer key accurately into Bahasa Malaysia. 
-Keep the same formatting — question numbers, choice letters (a, b, c, d), Roman numerals, and the separator "---ANSWERS-START---" must stay exactly as they are.
-Only translate the text content, not the structure.
+        const translatePrompt = (text, part) =>
+            `Translate the following ${part} into Bahasa Malaysia accurately. ` +
+            `Keep all question numbers, choice letters (a, b, c, d), and Roman numerals exactly as they are. ` +
+            `Only translate the text — do not add explanations or change the structure.\n\n${text}`;
 
-${window._quizRaw.questions}
----ANSWERS-START---
-${window._quizRaw.answers}`;
+        const [resQ, resA] = await Promise.all([
+            puter.ai.chat(translatePrompt(window._quizRaw.questions, 'exam questions'), { model: 'google/gemini-2.0-flash' }),
+            puter.ai.chat(translatePrompt(window._quizRaw.answers, 'answer key'), { model: 'google/gemini-2.0-flash' })
+        ]);
 
-        const res   = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
-        const parts = res.message.content.split('---ANSWERS-START---');
-        const qBM   = parts[0].trim();
-        const aBM   = parts[1] ? parts[1].trim() : window._quizRaw.answers;
+        const qBM = resQ.message.content.trim();
+        const aBM = resA.message.content.trim();
 
-        // Store BM version for export too
         window._quizRaw.questionsBM = qBM;
         window._quizRaw.answersBM   = aBM;
 

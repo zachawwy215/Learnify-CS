@@ -191,6 +191,66 @@
         .flash-start-btn { background: #5b6ef5; color: white; width: 100%; opacity: 0.4; pointer-events: none; }
         .flash-start-btn.enabled { opacity: 1; pointer-events: auto; cursor: pointer; }
 
+        /* ── Scramble v2 ── */
+        .scr-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 10px; }
+        .scr-stat  { background: rgba(255,255,255,0.7); border-radius: 10px; padding: 7px 4px; text-align: center; }
+        .scr-stat-label { font-size: 0.68rem; color: #888; display: block; }
+        .scr-stat-val   { font-size: 1.2rem; font-weight: bold; color: #2c3e50; }
+        .scr-stat-val.streak-col { color: #1D9E75; }
+        .scr-stat-val.best-col   { color: #7F77DD; }
+        .scr-lives { font-size: 1.3rem; text-align: center; margin-bottom: 6px; letter-spacing: 4px; }
+        .scr-diff-row { display: flex; gap: 5px; margin-bottom: 10px; justify-content: center; }
+        .scr-diff-btn { flex: 1; padding: 5px 0; border-radius: 8px; border: 1px solid #ccc;
+                        background: white; font-size: 0.75rem; cursor: pointer; font-family: 'Handlee';
+                        transition: all 0.15s; }
+        .scr-diff-btn.d-easy   { background: #d4edda; border-color: #27ae60; color: #1e7e34; font-weight: bold; }
+        .scr-diff-btn.d-medium { background: #fff3cd; border-color: #f39c12; color: #856404; font-weight: bold; }
+        .scr-diff-btn.d-hard   { background: #f8d7da; border-color: #e74c3c; color: #721c24; font-weight: bold; }
+        .scr-timer-wrap { height: 6px; background: #ddd; border-radius: 99px; overflow: hidden; margin-bottom: 8px; }
+        .scr-timer-bar  { height: 100%; border-radius: 99px; background: #27ae60; transition: width 1s linear, background 1s; }
+        .scr-hint-box   { background: rgba(255,255,255,0.75); border-radius: 10px; padding: 8px 12px;
+                          font-size: 0.82rem; color: #555; min-height: 36px; margin-bottom: 8px;
+                          border: 1px dashed #ccc; text-align: center; line-height: 1.5; }
+        .scr-hint-box strong { color: #2c3e50; }
+        .scr-answer-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; min-height: 48px; margin-bottom: 8px; }
+        .scr-slot { width: 40px; height: 44px; border-radius: 8px; border: 1.5px dashed #ccc;
+                    background: rgba(255,255,255,0.5); display: flex; align-items: center;
+                    justify-content: center; font-size: 1.2rem; font-weight: bold; cursor: pointer;
+                    transition: all 0.12s; color: #2c3e50; }
+        .scr-slot.filled  { background: white; border-style: solid; border-color: #7F77DD; }
+        .scr-slot.correct { background: #d4edda; border-color: #27ae60; animation: scr-pop 0.25s; }
+        .scr-slot.wrong   { background: #f8d7da; border-color: #e74c3c; animation: scr-shake 0.3s; }
+        .scr-tiles-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; min-height: 48px; margin-bottom: 8px; }
+        .scr-tile { width: 40px; height: 44px; border-radius: 8px; border: 1px solid #c0c8f8;
+                    background: white; display: flex; align-items: center; justify-content: center;
+                    font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.12s; color: #2c3e50; }
+        .scr-tile:hover   { background: #eef0ff; border-color: #7F77DD; }
+        .scr-tile.picked  { background: #EEEDFE; border-color: #7F77DD; color: #3C3489; transform: translateY(-3px); }
+        .scr-tile.used    { opacity: 0; pointer-events: none; }
+        .scr-btn-row { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; margin-bottom: 6px; }
+        .scr-btn { padding: 6px 12px; border-radius: 8px; border: 1px solid #ccc;
+                   background: white; cursor: pointer; font-size: 0.78rem; font-family: 'Handlee';
+                   font-weight: bold; transition: all 0.15s; }
+        .scr-btn:hover   { background: #f0f0f0; }
+        .scr-btn:disabled { opacity: 0.4; cursor: default; }
+        .scr-btn.danger  { background: #f8d7da; border-color: #e74c3c; color: #721c24; }
+        .scr-feedback    { text-align: center; font-weight: bold; min-height: 22px; font-size: 0.9rem; }
+        .scr-feedback.ok  { color: #1e7e34; }
+        .scr-feedback.err { color: #721c24; }
+        .scr-feedback.inf { color: #7F77DD; }
+        .scr-progress { font-size: 0.72rem; color: #888; text-align: center; margin-bottom: 5px; }
+        .scr-summary  { background: rgba(255,255,255,0.85); border-radius: 14px; padding: 18px; text-align: center; }
+        .scr-summary h3 { margin: 0 0 8px; font-family: 'Coming Soon', cursive; color: #2980b9; }
+        .scr-grade { font-size: 2.8rem; font-weight: bold; margin: 6px 0; }
+        .scr-grade.A { color: #1D9E75; } .scr-grade.B { color: #7F77DD; }
+        .scr-grade.C { color: #f39c12; } .scr-grade.D { color: #e74c3c; }
+        .milestone-burst { position: fixed; top: 40%; left: 50%; transform: translate(-50%,-50%);
+                           font-size: 3rem; pointer-events: none; z-index: 9999;
+                           animation: burst-anim 0.9s forwards; }
+        @keyframes burst-anim { 0%{opacity:1;transform:translate(-50%,-50%) scale(0.4)} 50%{opacity:1;transform:translate(-50%,-65%) scale(1.5)} 100%{opacity:0;transform:translate(-50%,-90%) scale(1)} }
+        @keyframes scr-pop   { 0%{transform:scale(1)} 50%{transform:scale(1.25)} 100%{transform:scale(1)} }
+        @keyframes scr-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+
         #timer-bar-wrap { background: #dde; border-radius: 8px; height: 10px; margin: 8px 0; overflow: hidden; }
         #timer-bar { height: 100%; border-radius: 8px; background: #5b6ef5; width: 100%; transition: width 1s linear, background 1s; }
 
@@ -307,18 +367,54 @@
 
             <!-- Terminology Scramble -->
             <div id="game-section" class="game-panel">
-                <div style="font-weight:bold;color:#d35400;margin-bottom:10px;">🧩 Terminology Scramble | Streak: <span id="streak-count">0</span></div>
-                <button id="start-game-btn" class="btn play-game-btn" onclick="toggleGame()">Start Word Scramble</button>
-                <div id="game-content" style="display:none;margin-top:14px;">
-                    <div id="scrambled-display" style="font-size:1.8rem;font-weight:bold;color:#e74c3c;letter-spacing:4px;margin:10px 0;"></div>
-                    <div id="hint-text"         style="font-size:0.85rem;color:#7f8c8d;font-style:italic;margin-bottom:8px;min-height:1.1rem;"></div>
-                    <input type="text" id="game-input" style="padding:9px;width:70%;border-radius:6px;border:1px solid #ccc;margin-bottom:8px;font-family:'Handlee';" placeholder="Type answer...">
-                    <div>
-                        <button class="btn" style="background:#e67e22;color:white;" onclick="checkScramble()">Submit</button>
-                        <button class="btn" style="background:#9b59b6;color:white;font-size:0.8rem;" onclick="showHint()">Hint</button>
-                        <button class="btn" style="background:#95a5a6;color:white;font-size:0.8rem;" onclick="giveUp()">Give Up</button>
+                <div style="font-weight:bold;color:#d35400;margin-bottom:6px;">🧩 Terminology Scramble</div>
+
+                <!-- Lobby -->
+                <div id="scr-lobby">
+                    <div style="font-size:0.82rem;color:#666;margin-bottom:8px;">Unscramble terms from your document!</div>
+                    <div class="scr-diff-row">
+                        <button class="scr-diff-btn" id="sdiff-easy"   onclick="setScrDiff('easy')">🟢 Easy<br><small>7–8 letters · 30s</small></button>
+                        <button class="scr-diff-btn" id="sdiff-medium" onclick="setScrDiff('medium')">🟡 Medium<br><small>9–11 · 20s</small></button>
+                        <button class="scr-diff-btn" id="sdiff-hard"   onclick="setScrDiff('hard')">🔴 Hard<br><small>12+ · 12s</small></button>
                     </div>
-                    <p id="game-feedback" style="font-weight:bold;margin-top:10px;min-height:20px;"></p>
+                    <div id="scr-diff-label" style="font-size:0.78rem;color:#888;margin-bottom:8px;">Selected: Easy</div>
+                    <button id="start-game-btn" class="btn play-game-btn" onclick="toggleGame()">Start Word Scramble</button>
+                </div>
+
+                <!-- Active game -->
+                <div id="game-content" style="display:none;margin-top:6px;">
+                    <!-- Stats bar -->
+                    <div class="scr-stats">
+                        <div class="scr-stat"><span class="scr-stat-label">Score</span><span class="scr-stat-val" id="scr-score">0</span></div>
+                        <div class="scr-stat"><span class="scr-stat-label">Streak</span><span class="scr-stat-val streak-col" id="streak-count">0</span></div>
+                        <div class="scr-stat"><span class="scr-stat-label">Best</span><span class="scr-stat-val best-col" id="scr-best">0</span></div>
+                        <div class="scr-stat"><span class="scr-stat-label">Lives</span><span class="scr-stat-val" id="scr-lives-display">❤️❤️❤️</span></div>
+                    </div>
+                    <!-- Timer -->
+                    <div class="scr-timer-wrap"><div class="scr-timer-bar" id="scr-timer-bar" style="width:100%"></div></div>
+                    <div style="font-size:0.75rem;color:#888;margin-bottom:6px;" id="scr-timer-label">⏱ 30s</div>
+                    <!-- Hint box -->
+                    <div class="scr-hint-box" id="scr-hint-box">Tap a letter tile to build your answer!</div>
+                    <!-- Answer slots -->
+                    <div class="scr-answer-row" id="scr-answer-row"></div>
+                    <!-- Scrambled tiles -->
+                    <div class="scr-tiles-row" id="scr-tiles-row"></div>
+                    <!-- Buttons -->
+                    <div class="scr-btn-row">
+                        <button class="scr-btn" id="scr-hint-btn" onclick="scrShowHint()">💡 Hint <small>(-5pts)</small></button>
+                        <button class="scr-btn danger" onclick="scrGiveUp()">🏳️ Give Up</button>
+                        <button class="scr-btn" style="background:#f8d7da;border-color:#e74c3c;color:#721c24;" onclick="toggleGame()">Stop</button>
+                    </div>
+                    <div class="scr-feedback" id="game-feedback"></div>
+                    <div class="scr-progress" id="scr-progress"></div>
+                </div>
+
+                <!-- Summary screen -->
+                <div id="scr-summary" style="display:none;" class="scr-summary">
+                    <h3>🏁 Game Over!</h3>
+                    <div class="scr-grade" id="scr-grade-display">A</div>
+                    <div id="scr-summary-stats" style="font-size:0.88rem;color:#555;margin:8px 0;line-height:1.8;"></div>
+                    <button class="btn" style="background:#e67e22;color:white;margin-top:6px;" onclick="restartScrGame()">🔄 Play Again</button>
                 </div>
             </div>
 
@@ -726,48 +822,312 @@ function handleRegen() {
     else                                         runAI();
 }
 
-// ── Terminology Scramble ──────────────────────────────────────────
+// ── Terminology Scramble (Upgraded) ──────────────────────────────
+const SCR_DIFF = { easy:{min:7,max:8,time:30}, medium:{min:9,max:11,time:20}, hard:{min:12,max:99,time:12} };
+let scrDiff       = 'easy';
+let scrLives      = 3;
+let scrScore      = 0;
+let scrBest       = parseInt(localStorage.getItem('scrBest') || '0');
+let scrRound      = 0;
+let scrTotalRounds = 10;
+let scrCorrect    = 0;
+let scrTimer      = null;
+let scrTimeLeft   = 30;
+let scrTiles      = [];   // array of {letter, idx, used}
+let scrAnswer     = [];   // array of {letter, tileIdx} | null per slot
+let scrHintUsed   = false;
+let scrHintPending = false;
+
+function setScrDiff(d) {
+    scrDiff = d;
+    const labels = {easy:'🟢 Easy (7–8 letters · 30s)', medium:'🟡 Medium (9–11 letters · 20s)', hard:'🔴 Hard (12+ letters · 12s)'};
+    document.getElementById('scr-diff-label').innerText = 'Selected: ' + labels[d];
+    ['easy','medium','hard'].forEach(x => {
+        const btn = document.getElementById('sdiff-'+x);
+        btn.className = 'scr-diff-btn' + (x===d ? ' d-'+x : '');
+    });
+}
+setScrDiff('easy');
+
 function toggleGame() {
     if (!lastExtractedText) { alert('Upload a file or paste text first!'); return; }
-    gameActive = !gameActive;
-    document.getElementById('game-content').style.display   = gameActive ? 'block' : 'none';
-    document.getElementById('start-game-btn').innerText     = gameActive ? 'Stop Game' : 'Start Word Scramble';
-    if (gameActive) refreshGame();
-}
-
-function refreshGame() {
-    document.getElementById('game-feedback').innerText = '';
-    document.getElementById('hint-text').innerText     = '';
-    const words = lastExtractedText.split(/\s+/).filter(w => w.length > 6 && /^[A-Za-z]+$/.test(w));
-    currentWord = (words.length > 0 ? words[Math.floor(Math.random() * words.length)] : 'DEVELOPMENT')
-        .toUpperCase();
-    document.getElementById('scrambled-display').innerText =
-        currentWord.split('').sort(() => Math.random() - 0.5).join('');
-    document.getElementById('game-input').value = '';
-}
-
-function checkScramble() {
-    if (document.getElementById('game-input').value.toUpperCase() === currentWord) {
-        winStreak++;
-        document.getElementById('streak-count').innerText  = winStreak;
-        document.getElementById('game-feedback').innerText = '✅ Correct!';
-        setTimeout(refreshGame, 1000);
+    if (gameActive) {
+        stopScrGame();
     } else {
-        winStreak = 0;
-        document.getElementById('streak-count').innerText  = '0';
-        document.getElementById('game-feedback').innerText = '❌ Try again!';
+        startScrGame();
     }
 }
 
-function showHint() {
-    document.getElementById('hint-text').innerText =
-        `Starts with "${currentWord[0]}" and ends with "${currentWord[currentWord.length - 1]}"`;
+function startScrGame() {
+    gameActive  = true;
+    scrLives    = 3;
+    scrScore    = 0;
+    scrRound    = 0;
+    scrCorrect  = 0;
+    winStreak   = 0;
+    document.getElementById('scr-lobby').style.display   = 'none';
+    document.getElementById('scr-summary').style.display = 'none';
+    document.getElementById('game-content').style.display = 'block';
+    updateScrHUD();
+    scrNextWord();
 }
 
-function giveUp() {
-    document.getElementById('game-feedback').innerText = `Answer: ${currentWord}`;
-    setTimeout(refreshGame, 2000);
+function stopScrGame() {
+    gameActive = false;
+    clearInterval(scrTimer);
+    document.getElementById('game-content').style.display  = 'none';
+    document.getElementById('scr-summary').style.display   = 'none';
+    document.getElementById('scr-lobby').style.display     = 'block';
 }
+
+function restartScrGame() {
+    document.getElementById('scr-summary').style.display = 'none';
+    startScrGame();
+}
+
+function scrGetWordPool() {
+    const cfg = SCR_DIFF[scrDiff];
+    const words = [...new Set(
+        lastExtractedText.split(/\s+/)
+            .map(w => w.replace(/[^A-Za-z]/g,''))
+            .filter(w => w.length >= cfg.min && w.length <= cfg.max)
+    )];
+    return words.length > 0 ? words : ['DEVELOPMENT','TECHNOLOGY','INFORMATION','PROGRAMMING','ALGORITHM'];
+}
+
+function scrNextWord() {
+    if (scrRound >= scrTotalRounds) { scrShowSummary(); return; }
+    scrRound++;
+    scrHintUsed = false;
+    clearInterval(scrTimer);
+
+    const pool = scrGetWordPool();
+    currentWord = pool[Math.floor(Math.random() * pool.length)].toUpperCase();
+
+    // Build shuffled tiles (ensure it's actually scrambled)
+    let shuffled = currentWord.split('').sort(() => Math.random() - 0.5);
+    while (shuffled.join('') === currentWord && currentWord.length > 1)
+        shuffled = currentWord.split('').sort(() => Math.random() - 0.5);
+
+    scrTiles  = shuffled.map((l, i) => ({ letter: l, idx: i, used: false }));
+    scrAnswer = new Array(currentWord.length).fill(null);
+
+    renderScrTiles();
+    renderScrSlots();
+
+    document.getElementById('game-feedback').innerText   = '';
+    document.getElementById('game-feedback').className   = 'scr-feedback';
+    document.getElementById('scr-hint-box').innerText    = '💬 Tap a letter tile to build your answer!';
+    document.getElementById('scr-hint-btn').disabled     = false;
+    document.getElementById('scr-progress').innerText    = `Round ${scrRound} of ${scrTotalRounds}`;
+
+    // Timer
+    scrTimeLeft = SCR_DIFF[scrDiff].time;
+    updateScrTimer();
+    scrTimer = setInterval(() => {
+        scrTimeLeft--;
+        updateScrTimer();
+        if (scrTimeLeft <= 0) { clearInterval(scrTimer); scrTimeOut(); }
+    }, 1000);
+}
+
+function renderScrTiles() {
+    const row = document.getElementById('scr-tiles-row');
+    row.innerHTML = '';
+    scrTiles.forEach((t, i) => {
+        const el = document.createElement('div');
+        el.className = 'scr-tile' + (t.used ? ' used' : '');
+        el.id = 'tile-' + i;
+        el.innerText = t.letter;
+        el.onclick = () => scrTilePick(i);
+        row.appendChild(el);
+    });
+}
+
+function renderScrSlots() {
+    const row = document.getElementById('scr-answer-row');
+    row.innerHTML = '';
+    scrAnswer.forEach((a, i) => {
+        const el = document.createElement('div');
+        el.className = 'scr-slot' + (a ? ' filled' : '');
+        el.id = 'slot-' + i;
+        el.innerText = a ? a.letter : '';
+        el.onclick = () => scrSlotClick(i);
+        row.appendChild(el);
+    });
+}
+
+function scrTilePick(tileIdx) {
+    if (scrTiles[tileIdx].used) return;
+    // Find first empty slot
+    const emptySlot = scrAnswer.findIndex(s => s === null);
+    if (emptySlot === -1) return;
+    scrTiles[tileIdx].used = true;
+    scrAnswer[emptySlot]   = { letter: scrTiles[tileIdx].letter, tileIdx };
+    document.getElementById('tile-' + tileIdx).classList.add('used');
+    const slot = document.getElementById('slot-' + emptySlot);
+    slot.innerText = scrTiles[tileIdx].letter;
+    slot.classList.add('filled');
+    // Auto-check when all slots filled
+    if (scrAnswer.every(s => s !== null)) scrCheckAnswer();
+}
+
+function scrSlotClick(slotIdx) {
+    if (scrAnswer[slotIdx] === null) return;
+    const tileIdx = scrAnswer[slotIdx].tileIdx;
+    scrTiles[tileIdx].used = false;
+    scrAnswer[slotIdx]     = null;
+    document.getElementById('tile-' + tileIdx).classList.remove('used');
+    const slot = document.getElementById('slot-' + slotIdx);
+    slot.innerText = '';
+    slot.classList.remove('filled', 'correct', 'wrong');
+}
+
+function scrCheckAnswer() {
+    clearInterval(scrTimer);
+    const guess = scrAnswer.map(s => s ? s.letter : '').join('');
+    if (guess === currentWord) {
+        scrCorrect++;
+        winStreak++;
+        // Score: base 100 + time bonus + streak multiplier - hint penalty
+        const timeBonus    = scrTimeLeft * 3;
+        const streakBonus  = Math.min(winStreak - 1, 5) * 20;
+        const hintPenalty  = scrHintUsed ? 5 : 0;
+        const earned       = Math.max(10, 100 + timeBonus + streakBonus - hintPenalty);
+        scrScore += earned;
+        if (scrScore > scrBest) { scrBest = scrScore; localStorage.setItem('scrBest', scrBest); }
+
+        // Flash slots green
+        scrAnswer.forEach((_, i) => document.getElementById('slot-' + i).classList.add('correct'));
+        document.getElementById('game-feedback').innerText  = `✅ +${earned} pts!`;
+        document.getElementById('game-feedback').className  = 'scr-feedback ok';
+        updateScrHUD();
+        scrMilestone();
+        setTimeout(scrNextWord, 1100);
+    } else {
+        winStreak = 0;
+        scrLives--;
+        scrAnswer.forEach((_, i) => document.getElementById('slot-' + i).classList.add('wrong'));
+        document.getElementById('game-feedback').innerText = `❌ Wrong! Returning tiles...`;
+        document.getElementById('game-feedback').className = 'scr-feedback err';
+        updateScrHUD();
+        setTimeout(() => {
+            if (!gameActive) return;
+            if (scrLives <= 0) { scrShowSummary(); return; }
+            // Reset tiles & slots for retry
+            scrTiles.forEach(t => t.used = false);
+            scrAnswer = new Array(currentWord.length).fill(null);
+            renderScrTiles();
+            renderScrSlots();
+            document.getElementById('game-feedback').innerText = '';
+            // Restart timer
+            scrTimeLeft = Math.ceil(SCR_DIFF[scrDiff].time * 0.6);
+            updateScrTimer();
+            scrTimer = setInterval(() => {
+                scrTimeLeft--;
+                updateScrTimer();
+                if (scrTimeLeft <= 0) { clearInterval(scrTimer); scrTimeOut(); }
+            }, 1000);
+        }, 900);
+    }
+}
+
+function scrTimeOut() {
+    if (!gameActive) return;
+    winStreak = 0;
+    scrLives--;
+    document.getElementById('game-feedback').innerText = `⌛ Time's up! The word was: ${currentWord}`;
+    document.getElementById('game-feedback').className = 'scr-feedback err';
+    updateScrHUD();
+    setTimeout(() => {
+        if (!gameActive) return;
+        if (scrLives <= 0) { scrShowSummary(); return; }
+        scrNextWord();
+    }, 1600);
+}
+
+async function scrShowHint() {
+    if (scrHintUsed) return;
+    scrHintUsed = true;
+    document.getElementById('scr-hint-btn').disabled = true;
+    const hintBox = document.getElementById('scr-hint-box');
+    hintBox.innerHTML = `<em>⏳ Asking AI for a definition hint…</em>`;
+    // Deduct 5pts immediately
+    scrScore = Math.max(0, scrScore - 5);
+    updateScrHUD();
+    try {
+        const snippet = lastExtractedText.substring(0, 4000);
+        const prompt  = `From this educational text, give a one-sentence definition or description of the word "${currentWord}" as it is used in the text. Keep it under 20 words. Do not mention the word itself. Text: "${snippet}"`;
+        const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+        hintBox.innerHTML = `<strong>💡 Hint:</strong> ${res.message.content.trim()}`;
+    } catch(e) {
+        hintBox.innerHTML = `<strong>💡 Hint:</strong> Starts with "<strong>${currentWord[0]}</strong>", ends with "<strong>${currentWord[currentWord.length-1]}</strong>"`;
+    }
+}
+
+function scrGiveUp() {
+    clearInterval(scrTimer);
+    winStreak = 0;
+    scrLives--;
+    document.getElementById('game-feedback').innerText = `🏳️ The answer was: ${currentWord}`;
+    document.getElementById('game-feedback').className = 'scr-feedback inf';
+    updateScrHUD();
+    setTimeout(() => {
+        if (!gameActive) return;
+        if (scrLives <= 0) { scrShowSummary(); return; }
+        scrNextWord();
+    }, 1800);
+}
+
+function updateScrHUD() {
+    document.getElementById('scr-score').innerText  = scrScore;
+    document.getElementById('streak-count').innerText = winStreak;
+    document.getElementById('scr-best').innerText   = scrBest;
+    const hearts = '❤️'.repeat(Math.max(0, scrLives)) + '🖤'.repeat(Math.max(0, 3 - scrLives));
+    document.getElementById('scr-lives-display').innerText = hearts;
+}
+
+function updateScrTimer() {
+    const total = SCR_DIFF[scrDiff].time;
+    const pct   = (scrTimeLeft / total) * 100;
+    const bar   = document.getElementById('scr-timer-bar');
+    bar.style.width      = pct + '%';
+    bar.style.background = pct > 50 ? '#27ae60' : pct > 25 ? '#f39c12' : '#e74c3c';
+    document.getElementById('scr-timer-label').innerText = `⏱ ${scrTimeLeft}s`;
+}
+
+function scrMilestone() {
+    const emojis = {3:'🔥', 5:'⭐', 7:'💎', 10:'👑'};
+    const e = emojis[winStreak];
+    if (!e) return;
+    const el = document.createElement('div');
+    el.className = 'milestone-burst';
+    el.innerText = e + ' x' + winStreak + '!';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 950);
+}
+
+function scrShowSummary() {
+    gameActive = false;
+    clearInterval(scrTimer);
+    document.getElementById('game-content').style.display  = 'none';
+    document.getElementById('scr-summary').style.display   = 'block';
+    const acc = scrTotalRounds > 0 ? Math.round((scrCorrect / scrTotalRounds) * 100) : 0;
+    const grade = acc >= 80 ? 'A' : acc >= 60 ? 'B' : acc >= 40 ? 'C' : 'D';
+    const gradeEl = document.getElementById('scr-grade-display');
+    gradeEl.innerText   = grade;
+    gradeEl.className   = 'scr-grade ' + grade;
+    document.getElementById('scr-summary-stats').innerHTML =
+        `📊 Score: <strong>${scrScore}</strong><br>
+         🎯 Accuracy: <strong>${acc}%</strong> (${scrCorrect}/${scrTotalRounds})<br>
+         🏆 Best Score: <strong>${scrBest}</strong>`;
+}
+
+// Legacy stubs (kept so nothing else breaks)
+function refreshGame() {}
+function checkScramble() {}
+function showHint() {}
+function giveUp() {}
 
 // ── Flash Quiz ────────────────────────────────────────────────────
 function setDiff(d) {

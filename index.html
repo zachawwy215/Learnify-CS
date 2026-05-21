@@ -491,7 +491,7 @@
 
             <!-- Summary screen -->
             <div id="scr-summary" style="display:none;" class="scr-summary">
-                <h3>🏁 Game Over!</h3>
+                <h3 id="scr-game-over-title">🏁 Game Over!</h3>
                 <div class="scr-grade" id="scr-grade-display">A</div>
                 <div id="scr-summary-stats" style="font-size:0.88rem;color:#555;margin:8px 0;line-height:1.8;"></div>
                 <button class="btn" style="background:#e67e22;color:white;margin-top:6px;" onclick="restartScrGame()">🔄 Play Again</button>
@@ -589,36 +589,263 @@ window.addEventListener('load', () => setTimeout(checkPuterLogin, 1500));
 // ── i18n ──────────────────────────────────────────────────────────
 const uiText = {
     en: {
-        title: 'Learnify', upload: '📁 Upload PDF or image',
-        generate: '✨ Generate Questions', translate: '🌐 Translate to BM',
-        summarize: '📋 Summarize', translateSummary: '🌐 Translate Summary',
+        // Main UI
+        title: 'Learnify',
+        upload: '📁 Upload PDF or image',
+        generate: '✨ Generate Questions',
+        translate: '🌐 Translate to BM',
+        summarize: '📋 Summarize',
+        translateSummary: '🌐 Translate Summary',
+        regen: '🔄 Regenerate',
         processing: '✨ Analysing and Formatting...',
-        type: 'QUESTION TYPE:', count: 'AMOUNT:',
-        disclaimer: 'Disclaimer: AI may occasionally provide incorrect information. Please cross-reference with your original source.'
+        type: 'QUESTION TYPE:',
+        count: 'AMOUNT:',
+        disclaimer: 'Disclaimer: AI may occasionally provide incorrect information. Please cross-reference with your original source.',
+        // Select options
+        qTypeObj: 'Objective Only',
+        qTypeSubj: 'Subjective Only',
+        qCount5: '5 Questions',
+        qCount10: '10 Questions',
+        qCount20: '20 Questions',
+        // Paste area
+        pastePlaceholder: '📝 Paste or type your text here...',
+        // Output container
+        outputWaiting: 'Waiting for document upload or pasted text...',
+        outputReady: '✅ Ready! Adjust settings and click an action above.',
+        outputReadingFile: 'Reading file...',
+        outputReadingImage: '🔍 Reading image text...',
+        // Answer toggle
+        showAnswers: 'Show Answers',
+        hideAnswers: 'Hide Answers',
+        // Quiz output
+        quizTitle: '📝 Practice Quiz',
+        copyAll: '📋 Copy All',
+        copied: '✅ Copied!',
+        downloadDocx: '📄 Download .docx',
+        translateQuiz: '🌐 Translate to BM',
+        showOriginal: '🔄 Show Original',
+        // Instruction box
+        instTitle: 'Quick Guide',
+        instStep1: '• 1. Upload a file or paste text.',
+        instStep2: '• 2. Choose question type & amount.',
+        instStep3: '• 3. Generate, Translate, or Summarize.',
+        instStep4: '• 4. Toggle 👁 to reveal answers.',
+        instStep5: '• 5. Play minigames to test yourself!',
+        // Mini Games section
+        minigameTitle: '🎮 Mini Games',
+        minigameSubtitle: 'Put your knowledge to the test — learning is more fun when it feels like play!',
+        // Scramble game
+        scrGameTitle: '🧩 Terminology Scramble',
+        scrLobbyDesc: 'Unscramble terms from your document!',
+        scrDiffLabel: 'Selected: Easy',
+        scrDiffLabels: { easy: '🟢 Easy (7–8 letters · 30s)', medium: '🟡 Medium (9–11 letters · 20s)', hard: '🔴 Hard (12+ letters · 12s)' },
+        scrStartBtn: 'Start Word Scramble',
+        scrStatScore: 'Score', scrStatStreak: 'Streak', scrStatBest: 'Best', scrStatLives: 'Lives',
+        scrHintDefault: '💬 Tap a letter tile to build your answer!',
+        scrHintBtn: '💡 Hint (-5pts)',
+        scrGiveUpBtn: '🏳️ Give Up',
+        scrStopBtn: 'Stop',
+        scrGameOver: '🏁 Game Over!',
+        scrPlayAgain: '🔄 Play Again',
+        scrRound: (r, t) => `Round ${r} of ${t}`,
+        scrCorrectMsg: (pts) => `✅ +${pts} pts!`,
+        scrWrongMsg: '❌ Wrong! Returning tiles...',
+        scrTimeOut: (w) => `⌛ Time's up! The word was: ${w}`,
+        scrGiveUpMsg: (w) => `🏳️ The answer was: ${w}`,
+        scrSummaryScore: (s, acc, c, t, b) => `📊 Score: <strong>${s}</strong><br>🎯 Accuracy: <strong>${acc}%</strong> (${c}/${t})<br>🏆 Best Score: <strong>${b}</strong>`,
+        // Flash Quiz
+        flashGameTitle: '⚡ Flash Quiz | Streak:',
+        flashLobbyDesc: 'Choose difficulty:',
+        flashDiffLabel: 'Selected: Easy (15s)',
+        flashDiffLabels: { easy: 'Easy (15s)', medium: 'Medium (10s)', hard: 'Hard (5s)' },
+        flashStartBtn: 'Start Flash Quiz',
+        flashStopBtn: 'Stop',
+        flashCorrect: '✅ Correct!',
+        flashWrong: '❌ Wrong!',
+        flashTimeOut: "⌛ Time's up!",
+        flashGenerating: '⏳ Generating question...',
+        // Alerts
+        alertUploadFirst: 'Please upload a file or paste some text first.',
+        alertUploadFirstGame: 'Upload a file or paste text first!',
+        alertSummarizeFirst: 'Please summarize a document first!',
     },
     ms: {
-        title: 'Learnify', upload: '📁 Muat Naik PDF atau Imej',
-        generate: '✨ Jana Soalan', translate: '🌐 Terjemah ke BM',
-        summarize: '📋 Ringkaskan', translateSummary: '🌐 Terjemah Ringkasan',
+        // Main UI
+        title: 'Learnify',
+        upload: '📁 Muat Naik PDF atau Imej',
+        generate: '✨ Jana Soalan',
+        translate: '🌐 Terjemah ke BM',
+        summarize: '📋 Ringkaskan',
+        translateSummary: '🌐 Terjemah Ringkasan',
+        regen: '🔄 Jana Semula',
         processing: '✨ Menganalisis dan Menyusun...',
-        type: 'JENIS SOALAN:', count: 'JUMLAH:',
-        disclaimer: 'Penafian: AI mungkin memberikan maklumat yang salah. Sila rujuk semula sumber asal anda.'
+        type: 'JENIS SOALAN:',
+        count: 'JUMLAH:',
+        disclaimer: 'Penafian: AI mungkin memberikan maklumat yang tidak tepat. Sila semak semula dengan sumber asal anda.',
+        // Select options
+        qTypeObj: 'Objektif Sahaja',
+        qTypeSubj: 'Subjektif Sahaja',
+        qCount5: '5 Soalan',
+        qCount10: '10 Soalan',
+        qCount20: '20 Soalan',
+        // Paste area
+        pastePlaceholder: '📝 Tampal atau taip teks anda di sini...',
+        // Output container
+        outputWaiting: 'Menunggu muat naik dokumen atau teks yang ditampal...',
+        outputReady: '✅ Sedia! Laraskan tetapan dan klik tindakan di atas.',
+        outputReadingFile: 'Membaca fail...',
+        outputReadingImage: '🔍 Membaca teks daripada imej...',
+        // Answer toggle
+        showAnswers: 'Tunjukkan Jawapan',
+        hideAnswers: 'Sembunyikan Jawapan',
+        // Quiz output
+        quizTitle: '📝 Kuiz Latihan',
+        copyAll: '📋 Salin Semua',
+        copied: '✅ Disalin!',
+        downloadDocx: '📄 Muat Turun .docx',
+        translateQuiz: '🌐 Terjemah ke BM',
+        showOriginal: '🔄 Tunjuk Asal',
+        // Instruction box
+        instTitle: 'Panduan Ringkas',
+        instStep1: '• 1. Muat naik fail atau tampal teks.',
+        instStep2: '• 2. Pilih jenis soalan & jumlah.',
+        instStep3: '• 3. Jana, Terjemah, atau Ringkaskan.',
+        instStep4: '• 4. Togol 👁 untuk lihat jawapan.',
+        instStep5: '• 5. Main permainan mini untuk menguji diri!',
+        // Mini Games section
+        minigameTitle: '🎮 Permainan Mini',
+        minigameSubtitle: 'Uji pengetahuan anda — belajar lebih seronok apabila terasa seperti bermain!',
+        // Scramble game
+        scrGameTitle: '🧩 Susun Istilah',
+        scrLobbyDesc: 'Susun semula istilah daripada dokumen anda!',
+        scrDiffLabel: 'Dipilih: Mudah',
+        scrDiffLabels: { easy: '🟢 Mudah (7–8 huruf · 30s)', medium: '🟡 Sederhana (9–11 huruf · 20s)', hard: '🔴 Sukar (12+ huruf · 12s)' },
+        scrStartBtn: 'Mula Susun Kata',
+        scrStatScore: 'Mata', scrStatStreak: 'Jujukan', scrStatBest: 'Terbaik', scrStatLives: 'Nyawa',
+        scrHintDefault: '💬 Ketik jubin huruf untuk membina jawapan anda!',
+        scrHintBtn: '💡 Petunjuk (-5 mata)',
+        scrGiveUpBtn: '🏳️ Menyerah',
+        scrStopBtn: 'Berhenti',
+        scrGameOver: '🏁 Permainan Tamat!',
+        scrPlayAgain: '🔄 Main Semula',
+        scrRound: (r, t) => `Pusingan ${r} daripada ${t}`,
+        scrCorrectMsg: (pts) => `✅ +${pts} mata!`,
+        scrWrongMsg: '❌ Salah! Mengembalikan jubin...',
+        scrTimeOut: (w) => `⌛ Masa tamat! Perkataan itu ialah: ${w}`,
+        scrGiveUpMsg: (w) => `🏳️ Jawapannya ialah: ${w}`,
+        scrSummaryScore: (s, acc, c, t, b) => `📊 Mata: <strong>${s}</strong><br>🎯 Ketepatan: <strong>${acc}%</strong> (${c}/${t})<br>🏆 Mata Terbaik: <strong>${b}</strong>`,
+        // Flash Quiz
+        flashGameTitle: '⚡ Kuiz Kilat | Jujukan:',
+        flashLobbyDesc: 'Pilih tahap kesukaran:',
+        flashDiffLabel: 'Dipilih: Mudah (15s)',
+        flashDiffLabels: { easy: 'Mudah (15s)', medium: 'Sederhana (10s)', hard: 'Sukar (5s)' },
+        flashStartBtn: 'Mula Kuiz Kilat',
+        flashStopBtn: 'Berhenti',
+        flashCorrect: '✅ Betul!',
+        flashWrong: '❌ Salah!',
+        flashTimeOut: '⌛ Masa tamat!',
+        flashGenerating: '⏳ Menjana soalan...',
+        // Alerts
+        alertUploadFirst: 'Sila muat naik fail atau tampal teks dahulu.',
+        alertUploadFirstGame: 'Muat naik fail atau tampal teks dahulu!',
+        alertSummarizeFirst: 'Sila ringkaskan dokumen dahulu!',
     }
 };
 
 function toggleUILanguage() {
     currentUILang = currentUILang === 'en' ? 'ms' : 'en';
+    applyUILanguage();
+}
+
+function applyUILanguage() {
     const t = uiText[currentUILang];
-    document.getElementById('main-title').innerText           = t.title;
-    document.getElementById('file-label').innerText           = t.upload;
-    document.getElementById('btn-generate').innerText         = t.generate;
-    document.getElementById('btn-translate').innerText        = t.translate;
-    document.getElementById('btn-summarize').innerText        = t.summarize;
+
+    // Main buttons & labels
+    document.getElementById('main-title').innerText            = t.title;
+    document.getElementById('file-label').innerText            = t.upload;
+    document.getElementById('btn-generate').innerText          = t.generate;
+    document.getElementById('btn-translate').innerText         = t.translate;
+    document.getElementById('btn-summarize').innerText         = t.summarize;
     document.getElementById('btn-translate-summary').innerText = t.translateSummary;
-    document.getElementById('lbl-type').innerText             = t.type;
-    document.getElementById('lbl-count').innerText            = t.count;
-    document.getElementById('disclaimer-text').innerText      = t.disclaimer;
-    document.getElementById('uiLangBtn').innerText            = currentUILang === 'en' ? 'Bahasa Malaysia' : 'English';
+    document.getElementById('btn-regen').innerText             = t.regen;
+    document.getElementById('lbl-type').innerText              = t.type;
+    document.getElementById('lbl-count').innerText             = t.count;
+    document.getElementById('disclaimer-text').innerText       = t.disclaimer;
+    document.getElementById('uiLangBtn').innerText             = currentUILang === 'en' ? 'Bahasa Malaysia' : 'English';
+
+    // Paste placeholder
+    document.getElementById('paste-input').placeholder = t.pastePlaceholder;
+
+    // Select options
+    const qType = document.getElementById('qType');
+    if (qType) { qType.options[0].text = t.qTypeObj; qType.options[1].text = t.qTypeSubj; }
+    const qCount = document.getElementById('qCount');
+    if (qCount) { qCount.options[0].text = t.qCount5; qCount.options[1].text = t.qCount10; qCount.options[2].text = t.qCount20; }
+
+    // Output container — only translate the waiting/ready static states
+    const out = document.getElementById('output-container');
+    const outText = out.innerText.trim();
+    if (outText === uiText['en'].outputWaiting || outText === uiText['ms'].outputWaiting)
+        out.innerText = t.outputWaiting;
+    else if (outText === uiText['en'].outputReady || outText === uiText['ms'].outputReady)
+        out.innerText = t.outputReady;
+
+    // Instruction box
+    document.getElementById('inst-title').innerText = t.instTitle;
+    const instItems = document.querySelectorAll('.instruction-box ul li');
+    if (instItems.length >= 5) {
+        instItems[0].innerText = t.instStep1;
+        instItems[1].innerText = t.instStep2;
+        instItems[2].innerText = t.instStep3;
+        instItems[3].innerText = t.instStep4;
+        instItems[4].innerText = t.instStep5;
+    }
+
+    // Mini Games section header
+    document.querySelector('.minigame-title').innerText    = t.minigameTitle;
+    document.querySelector('.minigame-subtitle').innerText = t.minigameSubtitle;
+
+    // Scramble game panel title & lobby
+    document.querySelector('#game-section > div:first-child').innerText = t.scrGameTitle;
+    document.querySelector('#scr-lobby > div:first-child').innerText    = t.scrLobbyDesc;
+    document.getElementById('start-game-btn').innerText                 = t.scrStartBtn;
+    setScrDiff(scrDiff); // re-renders the selected difficulty label in current lang
+    // Stat labels
+    const statLabels = document.querySelectorAll('.scr-stat-label');
+    if (statLabels.length >= 4) {
+        statLabels[0].innerText = t.scrStatScore;
+        statLabels[1].innerText = t.scrStatStreak;
+        statLabels[2].innerText = t.scrStatBest;
+        statLabels[3].innerText = t.scrStatLives;
+    }
+    document.getElementById('scr-hint-btn').innerHTML = t.scrHintBtn;
+    const giveUpBtn = document.querySelector('button[onclick="scrGiveUp()"]');
+    if (giveUpBtn) giveUpBtn.innerText = t.scrGiveUpBtn;
+    const scrStopBtn = document.querySelector('#game-content .scr-btn[onclick="toggleGame()"]');
+    if (scrStopBtn) scrStopBtn.innerText = t.scrStopBtn;
+    const scrGameOverH3 = document.getElementById('scr-game-over-title');
+    if (scrGameOverH3) scrGameOverH3.innerText = t.scrGameOver;
+    const scrPlayAgainBtn = document.querySelector('#scr-summary button[onclick="restartScrGame()"]');
+    if (scrPlayAgainBtn) scrPlayAgainBtn.innerText = t.scrPlayAgain;
+    // Hint box default text (only if not showing an AI hint)
+    const hintBox = document.getElementById('scr-hint-box');
+    if (hintBox && (hintBox.innerText === uiText['en'].scrHintDefault || hintBox.innerText === uiText['ms'].scrHintDefault))
+        hintBox.innerText = t.scrHintDefault;
+
+    // Flash Quiz panel title & lobby
+    const flashStreak = document.getElementById('flash-streak');
+    const flashStreakVal = flashStreak ? flashStreak.innerText : '0';
+    document.querySelector('#flash-section > div:first-child').innerHTML =
+        `${t.flashGameTitle} <span id="flash-streak">${flashStreakVal}</span>`;
+    document.querySelector('#flash-lobby > div:first-child').innerText  = t.flashLobbyDesc;
+    document.getElementById('flash-start-btn').innerText                = t.flashStartBtn;
+    const flashStopBtn = document.querySelector('#flash-game button[onclick="toggleFlash()"]');
+    if (flashStopBtn) flashStopBtn.innerText = t.flashStopBtn;
+    setDiff(flashDiff); // re-renders the selected difficulty label in current lang
+
+    // Answer toggle (if visible)
+    const toggleLabel = document.getElementById('toggle-label');
+    if (toggleLabel) toggleLabel.innerText = answersVisible ? t.hideAnswers : t.showAnswers;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────
@@ -644,7 +871,7 @@ async function handleFileSelect() {
 
     activateApp();
     const out = document.getElementById('output-container');
-    out.innerHTML = 'Reading file...';
+    out.innerHTML = uiText[currentUILang].outputReadingFile;
 
     try {
         if (file.type === 'application/pdf') {
@@ -656,10 +883,10 @@ async function handleFileSelect() {
             }
             lastExtractedText = text;
         } else {
-            out.innerHTML = '🔍 Reading image text...';
+            out.innerHTML = uiText[currentUILang].outputReadingImage;
             lastExtractedText = await puter.ai.img2txt(file);
         }
-        out.innerHTML = '✅ Ready! Adjust settings and click an action above.';
+        out.innerHTML = uiText[currentUILang].outputReady;
     } catch (e) {
         console.error(e);
         if (authError(e.message)) {
@@ -681,10 +908,12 @@ function handlePasteInput() {
     if (text.length > 20) {
         lastExtractedText = text;
         // Clear file selection label to avoid confusion
-        document.getElementById('file-label').innerText = '📁 Upload PDF or image';
+        document.getElementById('file-label').innerText = uiText[currentUILang].upload;
         activateApp();
         document.getElementById('output-container').innerHTML =
-            `✅ Text ready (${text.length} characters). Choose an action above.`;
+            currentUILang === 'ms'
+                ? `✅ Teks sedia (${text.length} aksara). Pilih tindakan di atas.`
+                : `✅ Text ready (${text.length} characters). Choose an action above.`;
     }
 }
 
@@ -693,7 +922,7 @@ function clearPaste() {
     document.querySelector('.paste-clear-btn').style.display = 'none';
     lastExtractedText = '';
     document.getElementById('setup-section').style.display = 'none';
-    document.getElementById('output-container').innerHTML = 'Waiting for document upload or pasted text...';
+    document.getElementById('output-container').innerHTML = uiText[currentUILang].outputWaiting;
 }
 
 // ── Answer toggle ─────────────────────────────────────────────────
@@ -705,7 +934,7 @@ function toggleAnswers() {
     if (!reveal) return;
     reveal.style.display = answersVisible ? 'block' : 'none';
     icon.innerText  = answersVisible ? '🙈' : '👁';
-    label.innerText = answersVisible ? 'Hide Answers' : 'Show Answers';
+    label.innerText = answersVisible ? uiText[currentUILang].hideAnswers : uiText[currentUILang].showAnswers;
 }
 
 // ── Generate Questions ────────────────────────────────────────────
@@ -767,8 +996,8 @@ function copyQuiz() {
     const text = `PRACTICE QUIZ\n${'='.repeat(40)}\n\n${window._quizRaw.questions}\n\n${'='.repeat(40)}\nANSWER KEY\n${'='.repeat(40)}\n\n${window._quizRaw.answers}`;
     navigator.clipboard.writeText(text).then(() => {
         const btn = document.querySelector('.quiz-export-btn.copy');
-        btn.innerText = '✅ Copied!';
-        setTimeout(() => { btn.innerHTML = '📋 Copy All'; }, 2000);
+        btn.innerText = uiText[currentUILang].copied;
+        setTimeout(() => { btn.innerHTML = uiText[currentUILang].copyAll; }, 2000);
     }).catch(() => alert('Copy failed — try selecting text manually.'));
 }
 
@@ -907,7 +1136,7 @@ async function translateQuizToBM() {
         document.getElementById('quiz-questions').innerHTML = formatQuiz(qBM);
         document.getElementById('answer-reveal').innerHTML  = formatAnswers(aBM);
 
-        btn.innerHTML = '🔄 Show Original';
+        btn.innerHTML = uiText[currentUILang].showOriginal;
         btn.disabled  = false;
         btn.onclick   = restoreQuizOriginal;
     } catch(e) {
@@ -923,12 +1152,12 @@ function restoreQuizOriginal() {
     document.getElementById('quiz-questions').innerHTML = formatQuiz(window._quizRaw.questions);
     document.getElementById('answer-reveal').innerHTML  = formatAnswers(window._quizRaw.answers);
     const btn     = document.getElementById('btn-translate-quiz');
-    btn.innerHTML = '🌐 Translate to BM';
+    btn.innerHTML = uiText[currentUILang].translateQuiz;
     btn.onclick   = translateQuizToBM;
 }
 
 async function runAI() {
-    if (!lastExtractedText) { alert('Please upload a file or paste some text first.'); return; }
+    if (!lastExtractedText) { alert(uiText[currentUILang].alertUploadFirst); return; }
     lastAction = 'generate';
     answersVisible = false;
     document.getElementById('btn-translate-summary').style.display = 'none';
@@ -957,16 +1186,16 @@ Language: ${currentUILang === 'en' ? 'English' : 'Bahasa Malaysia'}.`;
         window._quizRaw = { questions: qContent, answers: aContent };
 
         out.innerHTML = `
-            <h3>📝 Practice Quiz</h3>
+            <h3>${uiText[currentUILang].quizTitle}</h3>
             <div class="quiz-toolbar">
-                <button class="quiz-export-btn copy" onclick="copyQuiz()">📋 Copy All</button>
-                <button class="quiz-export-btn docx" onclick="downloadQuizDocx()">📄 Download .docx</button>
-                <button class="quiz-export-btn translate" id="btn-translate-quiz" onclick="translateQuizToBM()">🌐 Translate to BM</button>
+                <button class="quiz-export-btn copy" onclick="copyQuiz()">📋 ${uiText[currentUILang].copyAll.replace('📋 ','')}</button>
+                <button class="quiz-export-btn docx" onclick="downloadQuizDocx()">${uiText[currentUILang].downloadDocx}</button>
+                <button class="quiz-export-btn translate" id="btn-translate-quiz" onclick="translateQuizToBM()">${uiText[currentUILang].translateQuiz}</button>
             </div>
             <div id="quiz-questions">${formatQuiz(qContent)}</div>
             <div class="answer-toggle-bar" onclick="toggleAnswers()">
                 <span id="toggle-icon">👁</span>
-                <span id="toggle-label">Show Answers</span>
+                <span id="toggle-label">${uiText[currentUILang].showAnswers}</span>
             </div>
             <div id="answer-reveal" class="answer-box">${formatAnswers(aContent)}</div>
         `;
@@ -982,7 +1211,7 @@ Language: ${currentUILang === 'en' ? 'English' : 'Bahasa Malaysia'}.`;
 
 // ── Translate full document ───────────────────────────────────────
 async function translateToBM() {
-    if (!lastExtractedText) { alert('Please upload a file or paste some text first.'); return; }
+    if (!lastExtractedText) { alert(uiText[currentUILang].alertUploadFirst); return; }
     lastAction = 'translate';
     document.getElementById('btn-translate-summary').style.display = 'none';
     document.getElementById('btn-regen').style.display = 'none';
@@ -1042,7 +1271,7 @@ Text:\n\n${chunk}`;
 
 // ── Summarize ─────────────────────────────────────────────────────
 async function summarizeDoc() {
-    if (!lastExtractedText) { alert('Please upload a file or paste some text first.'); return; }
+    if (!lastExtractedText) { alert(uiText[currentUILang].alertUploadFirst); return; }
     lastAction = 'summarize';
     lastSummaryHTML = '';
     document.getElementById('btn-translate-summary').style.display = 'none';
@@ -1088,7 +1317,7 @@ Text:
 
 // ── Translate Summary ─────────────────────────────────────────────
 async function translateSummary() {
-    if (!lastSummaryHTML) { alert('Please summarize a document first!'); return; }
+    if (!lastSummaryHTML) { alert(uiText[currentUILang].alertSummarizeFirst); return; }
     lastAction = 'translate-summary';
     document.getElementById('btn-regen').style.display = 'none';
 
@@ -1145,8 +1374,9 @@ let scrHintPending = false;
 
 function setScrDiff(d) {
     scrDiff = d;
-    const labels = {easy:'🟢 Easy (7–8 letters · 30s)', medium:'🟡 Medium (9–11 letters · 20s)', hard:'🔴 Hard (12+ letters · 12s)'};
-    document.getElementById('scr-diff-label').innerText = 'Selected: ' + labels[d];
+    const labels = uiText[currentUILang].scrDiffLabels;
+    const prefix = currentUILang === 'ms' ? 'Dipilih: ' : 'Selected: ';
+    document.getElementById('scr-diff-label').innerText = prefix + labels[d];
     ['easy','medium','hard'].forEach(x => {
         const btn = document.getElementById('sdiff-'+x);
         btn.className = 'scr-diff-btn' + (x===d ? ' d-'+x : '');
@@ -1155,7 +1385,7 @@ function setScrDiff(d) {
 setScrDiff('easy');
 
 function toggleGame() {
-    if (!lastExtractedText) { alert('Upload a file or paste text first!'); return; }
+    if (!lastExtractedText) { alert(uiText[currentUILang].alertUploadFirstGame); return; }
     if (gameActive) {
         stopScrGame();
     } else {
@@ -1222,9 +1452,9 @@ function scrNextWord() {
 
     document.getElementById('game-feedback').innerText   = '';
     document.getElementById('game-feedback').className   = 'scr-feedback';
-    document.getElementById('scr-hint-box').innerText    = '💬 Tap a letter tile to build your answer!';
+    document.getElementById('scr-hint-box').innerText    = uiText[currentUILang].scrHintDefault;
     document.getElementById('scr-hint-btn').disabled     = false;
-    document.getElementById('scr-progress').innerText    = `Round ${scrRound} of ${scrTotalRounds}`;
+    document.getElementById('scr-progress').innerText    = uiText[currentUILang].scrRound(scrRound, scrTotalRounds);
 
     // Timer
     scrTimeLeft = SCR_DIFF[scrDiff].time;
@@ -1304,7 +1534,7 @@ function scrCheckAnswer() {
 
         // Flash slots green
         scrAnswer.forEach((_, i) => document.getElementById('slot-' + i).classList.add('correct'));
-        document.getElementById('game-feedback').innerText  = `✅ +${earned} pts!`;
+        document.getElementById('game-feedback').innerText  = uiText[currentUILang].scrCorrectMsg(earned);
         document.getElementById('game-feedback').className  = 'scr-feedback ok';
         updateScrHUD();
         scrMilestone();
@@ -1313,7 +1543,7 @@ function scrCheckAnswer() {
         winStreak = 0;
         scrLives--;
         scrAnswer.forEach((_, i) => document.getElementById('slot-' + i).classList.add('wrong'));
-        document.getElementById('game-feedback').innerText = `❌ Wrong! Returning tiles...`;
+        document.getElementById('game-feedback').innerText = uiText[currentUILang].scrWrongMsg;
         document.getElementById('game-feedback').className = 'scr-feedback err';
         updateScrHUD();
         setTimeout(() => {
@@ -1341,7 +1571,7 @@ function scrTimeOut() {
     if (!gameActive) return;
     winStreak = 0;
     scrLives--;
-    document.getElementById('game-feedback').innerText = `⌛ Time's up! The word was: ${currentWord}`;
+    document.getElementById('game-feedback').innerText = uiText[currentUILang].scrTimeOut(currentWord);
     document.getElementById('game-feedback').className = 'scr-feedback err';
     updateScrHUD();
     setTimeout(() => {
@@ -1374,7 +1604,7 @@ function scrGiveUp() {
     clearInterval(scrTimer);
     winStreak = 0;
     scrLives--;
-    document.getElementById('game-feedback').innerText = `🏳️ The answer was: ${currentWord}`;
+    document.getElementById('game-feedback').innerText = uiText[currentUILang].scrGiveUpMsg(currentWord);
     document.getElementById('game-feedback').className = 'scr-feedback inf';
     updateScrHUD();
     setTimeout(() => {
@@ -1422,10 +1652,7 @@ function scrShowSummary() {
     const gradeEl = document.getElementById('scr-grade-display');
     gradeEl.innerText   = grade;
     gradeEl.className   = 'scr-grade ' + grade;
-    document.getElementById('scr-summary-stats').innerHTML =
-        `📊 Score: <strong>${scrScore}</strong><br>
-         🎯 Accuracy: <strong>${acc}%</strong> (${scrCorrect}/${scrTotalRounds})<br>
-         🏆 Best Score: <strong>${scrBest}</strong>`;
+    document.getElementById('scr-summary-stats').innerHTML = uiText[currentUILang].scrSummaryScore(scrScore, acc, scrCorrect, scrTotalRounds, scrBest);
 }
 
 // Legacy stubs (kept so nothing else breaks)
@@ -1437,8 +1664,9 @@ function giveUp() {}
 // ── Flash Quiz ────────────────────────────────────────────────────
 function setDiff(d) {
     flashDiff = d;
-    const labels = { easy: 'Easy (15s)', medium: 'Medium (10s)', hard: 'Hard (5s)' };
-    document.getElementById('flash-diff-label').innerText = 'Selected: ' + labels[d];
+    const labels = uiText[currentUILang].flashDiffLabels;
+    const prefix = currentUILang === 'ms' ? 'Dipilih: ' : 'Selected: ';
+    document.getElementById('flash-diff-label').innerText = prefix + labels[d];
     ['easy', 'medium', 'hard'].forEach(x =>
         document.getElementById('diff-' + x).style.opacity = (x === d) ? '1' : '0.5'
     );
@@ -1446,7 +1674,7 @@ function setDiff(d) {
 setDiff('easy');
 
 function toggleFlash() {
-    if (!lastExtractedText) { alert('Upload a file or paste text first!'); return; }
+    if (!lastExtractedText) { alert(uiText[currentUILang].alertUploadFirstGame); return; }
     flashActive = !flashActive;
     if (flashActive) {
         flashStreak = 0;
@@ -1470,7 +1698,7 @@ async function loadFlashQuestion() {
     if (!flashActive) return;
     clearInterval(flashTimer);
 
-    document.getElementById('flash-question').innerText     = '⏳ Generating question...';
+    document.getElementById('flash-question').innerText     = uiText[currentUILang].flashGenerating;
     document.getElementById('flash-choices').innerHTML      = '';
     document.getElementById('flash-feedback').innerText     = '';
     document.getElementById('timer-bar').style.width        = '100%';
@@ -1531,14 +1759,14 @@ function answerFlash(btn, chosen, correct) {
         btn.classList.add('correct');
         flashStreak++;
         document.getElementById('flash-streak').innerText  = flashStreak;
-        document.getElementById('flash-feedback').innerText = '✅ Correct!';
+        document.getElementById('flash-feedback').innerText = uiText[currentUILang].flashCorrect;
         document.getElementById('flash-feedback').style.color = '#27ae60';
     } else {
         btn.classList.add('wrong');
         highlightCorrect(correct);
         flashStreak = 0;
         document.getElementById('flash-streak').innerText  = '0';
-        document.getElementById('flash-feedback').innerText = '❌ Wrong!';
+        document.getElementById('flash-feedback').innerText = uiText[currentUILang].flashWrong;
         document.getElementById('flash-feedback').style.color = '#e74c3c';
     }
     setTimeout(() => { if (flashActive) loadFlashQuestion(); }, 1400);
@@ -1549,7 +1777,7 @@ function timeOut(correct) {
     highlightCorrect(correct);
     flashStreak = 0;
     document.getElementById('flash-streak').innerText  = '0';
-    document.getElementById('flash-feedback').innerText = "⌛ Time's up!";
+    document.getElementById('flash-feedback').innerText = uiText[currentUILang].flashTimeOut;
     document.getElementById('flash-feedback').style.color = '#e74c3c';
     setTimeout(() => { if (flashActive) loadFlashQuestion(); }, 1400);
 }

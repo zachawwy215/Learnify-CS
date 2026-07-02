@@ -399,9 +399,8 @@
 
 <!-- Warning banner: shown when NOT signed into Puter -->
 <div id="puter-banner">
-    <span>⚠️ This app uses <strong>free AI via Puter</strong>. Please sign in to Puter.com so the AI features work.</span>
-    <a href="https://puter.com" target="_blank" onclick="handlePuterSignIn()">Sign in to Puter (Free)</a>
-    <button onclick="checkPuterLogin()" style="background:none;border:1px solid #999;border-radius:6px;padding:5px 10px;cursor:pointer;font-family:'Handlee';">✅ I've signed in</button>
+    <span>⚠️ This app uses <strong>free AI via Puter</strong>. Please sign in to Puter so the AI features work.</span>
+    <a href="#" onclick="handlePuterSignIn(); return false;">Sign in to Puter (Free)</a>
 </div>
 
 <!-- Green bar: shown briefly when signed in -->
@@ -595,6 +594,7 @@ let flashTimeLeft = 15;
 let flashQBank   = [];
 
 // ── Puter login ───────────────────────────────────────────────────
+// Passive check on load: just updates the banner, never pops anything up.
 async function checkPuterLogin() {
     try {
         const user = await puter.auth.getUser();
@@ -608,11 +608,14 @@ async function checkPuterLogin() {
                 bar.classList.remove('visible');
                 document.querySelector('.main-content').style.paddingTop = '40px';
             }, 5000);
+            return true;
         } else {
             showLoginBanner();
+            return false;
         }
     } catch (e) {
         showLoginBanner();
+        return false;
     }
 }
 
@@ -622,7 +625,62 @@ function showLoginBanner() {
     document.querySelector('.main-content').style.paddingTop = '90px';
 }
 
-function handlePuterSignIn() { setTimeout(checkPuterLogin, 5000); }
+// Manual "Sign in to Puter" link in the banner — opens Puter's real popup
+// sign-in flow (no new tab, no guessing with setTimeout).
+async function handlePuterSignIn() {
+    const ok = await ensurePuterAuth();
+    if (ok) checkPuterLogin();
+}
+
+// ── Auth gate used by every AI-calling function ─────────────────────
+// Call this as the FIRST thing inside any function that hits puter.ai.*.
+// Returns true if the user ends up signed in (session valid, or they just
+// completed the popup sign-in), false if they're not signed in and can't
+// be (popup blocked / cancelled / closed).
+let _authInFlight = null; // prevents stacking multiple popups if several buttons are clicked fast
+async function ensurePuterAuth() {
+    // 1) Fast path — already signed in with a live session.
+    try {
+        const user = await puter.auth.getUser();
+        if (user && user.username) return true;
+    } catch (e) {
+        // not signed in, or session expired — fall through to sign-in flow
+    }
+
+    // 2) Need to (re)authenticate. Reuse an in-flight sign-in if one exists,
+    //    so rapid clicks don't spawn multiple popups.
+    if (_authInFlight) {
+        try { return await _authInFlight; } catch (e) { return false; }
+    }
+
+    _authInFlight = (async () => {
+        try {
+            await puter.auth.signIn(); // opens Puter's real sign-in/sign-up popup
+            return true;
+        } catch (e) {
+            console.error('Puter sign-in failed or was cancelled:', e);
+            return false;
+        } finally {
+            _authInFlight = null;
+        }
+    })();
+
+    const result = await _authInFlight;
+    if (!result) showLoginBanner();
+    return result;
+}
+
+// Non-popping check — use this in spots where forcing a sign-in popup
+// mid-flow would be disruptive (e.g. a timed game hint). Just tells you
+// whether the user is currently signed in, without prompting them.
+async function isPuterAuthedSilently() {
+    try {
+        const user = await puter.auth.getUser();
+        return !!(user && user.username);
+    } catch (e) {
+        return false;
+    }
+}
 
 window.addEventListener('load', () => {
     setTimeout(checkPuterLogin, 1500);
@@ -945,6 +1003,12 @@ async function handleFileSelect() {
             }
             lastExtractedText = text;
         } else {
+            out.innerHTML = '🔐 Checking Puter sign-in...';
+            const authed = await ensurePuterAuth();
+            if (!authed) {
+                out.innerHTML = '❌ Please sign in to Puter to read images (see the banner at the top).';
+                return;
+            }
             out.innerHTML = uiText[currentUILang].outputReadingImage;
             lastExtractedText = await puter.ai.img2txt(file);
         }
@@ -1175,8 +1239,17 @@ async function downloadQuizDocx() {
 async function translateQuizToBM() {
     if (!window._quizRaw) return;
     const btn = document.getElementById('btn-translate-quiz');
-    btn.innerText = '⏳ Translating...';
+    btn.innerText = '🔐 Checking sign-in...';
     btn.disabled  = true;
+
+    const authed = await ensurePuterAuth();
+    if (!authed) {
+        btn.innerHTML = '🌐 Translate to BM';
+        btn.disabled  = false;
+        alert('Please sign in to Puter first (see the banner at the top).');
+        return;
+    }
+    btn.innerText = '⏳ Translating...';
 
     try {
         const translatePrompt = (text, part) =>
@@ -1228,6 +1301,12 @@ async function runAI() {
     const out    = document.getElementById('output-container');
     const qType  = document.getElementById('qType').value;
     const qCount = document.getElementById('qCount').value;
+    out.innerHTML = `🔐 Checking Puter sign-in...`;
+    const authed = await ensurePuterAuth();
+    if (!authed) {
+        out.innerHTML = '❌ Please sign in to Puter first (see the banner at the top).';
+        return;
+    }
     out.innerHTML = `<span style="color:#3498db;font-weight:bold;">${uiText[currentUILang].processing}</span>`;
 
     const prompt = `You are a professional academic examiner. Based on this text:
@@ -1279,6 +1358,12 @@ async function translateToBM() {
     document.getElementById('btn-regen').style.display = 'none';
 
     const out = document.getElementById('output-container');
+    out.innerHTML = `<h3>🌐 Terjemahan Nota</h3><div id="t-prog">🔐 Checking Puter sign-in...</div>`;
+    const authed = await ensurePuterAuth();
+    if (!authed) {
+        out.innerHTML = `<h3>🌐 Terjemahan Nota</h3><div style="color:red;">❌ Please sign in to Puter first (see the banner at the top).</div>`;
+        return;
+    }
     out.innerHTML = `<h3>🌐 Terjemahan Nota</h3><div id="t-prog" style="color:#e74c3c;font-weight:bold;">🌐 Preparing translation...</div>`;
     const prog = document.getElementById('t-prog');
 
@@ -1340,6 +1425,12 @@ async function summarizeDoc() {
     document.getElementById('btn-regen').style.display = 'none';
 
     const out = document.getElementById('output-container');
+    out.innerHTML = `🔐 Checking Puter sign-in...`;
+    const authed = await ensurePuterAuth();
+    if (!authed) {
+        out.innerHTML = '❌ Please sign in to Puter first (see the banner at the top).';
+        return;
+    }
     out.innerHTML = `<span style="color:#8e44ad;font-weight:bold;">📋 Summarizing document...</span>`;
 
     const lang = currentUILang === 'ms' ? 'formal Bahasa Malaysia' : 'English';
@@ -1384,6 +1475,12 @@ async function translateSummary() {
     document.getElementById('btn-regen').style.display = 'none';
 
     const out = document.getElementById('output-container');
+    out.innerHTML = `🔐 Checking Puter sign-in...`;
+    const authed = await ensurePuterAuth();
+    if (!authed) {
+        out.innerHTML = '❌ Please sign in to Puter first (see the banner at the top).';
+        return;
+    }
     out.innerHTML = `<span style="color:#c0392b;font-weight:bold;">🌐 Menterjemah ringkasan...</span>`;
 
     const prompt = `Translate the following HTML summary into formal Bahasa Malaysia.
@@ -1653,6 +1750,11 @@ async function scrShowHint() {
     scrScore = Math.max(0, scrScore - 5);
     updateScrHUD();
     try {
+        // Don't force a sign-in popup mid-game — that would pause the timer
+        // disruptively. If not signed in, just fall straight back to the
+        // non-AI hint below.
+        const authed = await isPuterAuthedSilently();
+        if (!authed) throw new Error('not signed in');
         const snippet = lastExtractedText.substring(0, 4000);
         const prompt  = `From this educational text, give a one-sentence definition or description of the word "${currentWord}" as it is used in the text. Keep it under 20 words. Do not mention the word itself. Text: "${snippet}"`;
         const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
@@ -1735,18 +1837,24 @@ function setDiff(d) {
 }
 setDiff('easy');
 
-function toggleFlash() {
+async function toggleFlash() {
     if (!lastExtractedText) { alert(uiText[currentUILang].alertUploadFirstGame); return; }
-    flashActive = !flashActive;
-    if (flashActive) {
-        flashStreak = 0;
-        document.getElementById('flash-streak').innerText       = '0';
-        document.getElementById('flash-lobby').style.display    = 'none';
-        document.getElementById('flash-game').style.display     = 'block';
-        loadFlashQuestion();
-    } else {
-        stopFlash();
+    if (flashActive) { flashActive = false; stopFlash(); return; }
+
+    // Gate sign-in BEFORE switching to the game screen, so the popup
+    // appears in the lobby rather than interrupting a running timer.
+    const authed = await ensurePuterAuth();
+    if (!authed) {
+        alert('Please sign in to Puter first (see the banner at the top) to play Flash Quiz.');
+        return;
     }
+
+    flashActive = true;
+    flashStreak = 0;
+    document.getElementById('flash-streak').innerText       = '0';
+    document.getElementById('flash-lobby').style.display    = 'none';
+    document.getElementById('flash-game').style.display     = 'block';
+    loadFlashQuestion();
 }
 
 function stopFlash() {

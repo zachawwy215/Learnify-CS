@@ -682,6 +682,24 @@ async function isPuterAuthedSilently() {
     }
 }
 
+// ── AI call with model fallback ─────────────────────────────────────
+// If the primary model is deprecated, rate-limited, or briefly down,
+// automatically retries with the next model in the list instead of
+// failing outright. Only throws once every model has been tried.
+const AI_MODEL_FALLBACKS = ['google/gemini-3.5-flash', 'google/gemini-3.1-flash-lite', 'gpt-5.4-nano'];
+async function chatWithFallback(prompt, options = {}) {
+    let lastErr;
+    for (const model of AI_MODEL_FALLBACKS) {
+        try {
+            return await puter.ai.chat(prompt, { ...options, model });
+        } catch (err) {
+            console.warn(`AI model "${model}" failed, trying next fallback...`, err);
+            lastErr = err;
+        }
+    }
+    throw lastErr; // every model in the list failed
+}
+
 window.addEventListener('load', () => {
     setTimeout(checkPuterLogin, 1500);
     // Pulse the language FAB a few times to draw attention
@@ -1258,8 +1276,8 @@ async function translateQuizToBM() {
             `Only translate the text — do not add explanations or change the structure.\n\n${text}`;
 
         const [resQ, resA] = await Promise.all([
-            puter.ai.chat(translatePrompt(window._quizRaw.questions, 'exam questions'), { model: 'google/gemini-2.0-flash' }),
-            puter.ai.chat(translatePrompt(window._quizRaw.answers, 'answer key'), { model: 'google/gemini-2.0-flash' })
+            chatWithFallback(translatePrompt(window._quizRaw.questions, 'exam questions')),
+            chatWithFallback(translatePrompt(window._quizRaw.answers, 'answer key'))
         ]);
 
         const qBM = resQ.message.content.trim();
@@ -1318,7 +1336,7 @@ After all questions, write exactly "---ANSWERS-START---" on its own line, then p
 Language: ${currentUILang === 'en' ? 'English' : 'Bahasa Malaysia'}.`;
 
     try {
-        const res   = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+        const res   = await chatWithFallback(prompt);
         const parts = res.message.content.split('---ANSWERS-START---');
         const qContent = parts[0].trim();
         const aContent = parts[1] ? parts[1].trim() : 'Answer key unavailable.';
@@ -1386,7 +1404,7 @@ Format the output as clean HTML using ONLY these tags:
 Do NOT include html fences, DOCTYPE, <html>, <head>, or <body> tags. Return only the HTML content.
 
 Text:\n\n${chunk}`;
-            const res = await puter.ai.chat(p, { model: 'google/gemini-2.0-flash' });
+            const res = await chatWithFallback(p);
             return res.message.content;
         } catch (err) {
             if (attempt < 3) {
@@ -1451,7 +1469,7 @@ Text:
 "${lastExtractedText.substring(0, 8000)}"`;
 
     try {
-        const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+        const res = await chatWithFallback(prompt);
         lastSummaryHTML = res.message.content.replace(/```html|```/g, '').trim();
         out.innerHTML = `
             <h3>📋 Ringkasan Dokumen / Document Summary</h3>
@@ -1491,7 +1509,7 @@ HTML:
 ${lastSummaryHTML}`;
 
     try {
-        const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+        const res = await chatWithFallback(prompt);
         const translated = res.message.content.replace(/```html|```/g, '').trim();
         out.innerHTML = `
             <h3>🌐 Ringkasan dalam Bahasa Malaysia</h3>
@@ -1757,7 +1775,7 @@ async function scrShowHint() {
         if (!authed) throw new Error('not signed in');
         const snippet = lastExtractedText.substring(0, 4000);
         const prompt  = `From this educational text, give a one-sentence definition or description of the word "${currentWord}" as it is used in the text. Keep it under 20 words. Do not mention the word itself. Text: "${snippet}"`;
-        const res = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+        const res = await chatWithFallback(prompt);
         hintBox.innerHTML = `<strong>💡 Hint:</strong> ${res.message.content.trim()}`;
     } catch(e) {
         hintBox.innerHTML = `<strong>💡 Hint:</strong> Starts with "<strong>${currentWord[0]}</strong>", ends with "<strong>${currentWord[currentWord.length-1]}</strong>"`;
@@ -1880,7 +1898,7 @@ async function loadFlashQuestion() {
 Generate 5 multiple-choice flash quiz questions. Each must have exactly 3 choices (A, B, C) and one correct answer.
 Return ONLY a JSON array, no markdown, no extra text. Format:
 [{"q":"Question text","choices":["A. option","B. option","C. option"],"answer":"A"}]`;
-            const res  = await puter.ai.chat(prompt, { model: 'google/gemini-2.0-flash' });
+            const res  = await chatWithFallback(prompt);
             const raw  = res.message.content.trim().replace(/```json|```/g, '').trim();
             flashQBank = JSON.parse(raw);
         } catch (e) {
